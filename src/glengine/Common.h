@@ -5,6 +5,7 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <functional>
 #include <cstring>
 #include <glm/glm.hpp>
 

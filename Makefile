@@ -16,7 +16,7 @@ $(BINDIR)/main: $(OBJS)
 $(OBJDIR)/%.o: $(SRCDIR)/%.cc
 	@echo "[CXX] $<"
 	@mkdir -p $(OBJDIR)
-	@$(CXX) -c $(CXXFLAGS) $< -o $@
+	$(CXX) -c $(CXXFLAGS) $< -o $@
 
 clean:
 	rm -vf bin/*

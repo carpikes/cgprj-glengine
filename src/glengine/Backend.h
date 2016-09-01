@@ -2,6 +2,7 @@
 #define GLENGINE_BACKEND_H
 
 #include <Common.h>
+#include <Object.h>
 
 namespace GLEngine
 {
@@ -40,6 +41,7 @@ public:
         }
 
         glfwMakeContextCurrent(mWindow);
+
         glewExperimental = true;
         if (glewInit() != GLEW_OK) {
             ERR("Cannot initialize GLEW");
@@ -47,22 +49,51 @@ public:
             return false;
         }
 
+        GLuint VertexArrayID;
+        glGenVertexArrays(1, &VertexArrayID);
+        glBindVertexArray(VertexArrayID);
+
         return true;
     }
 
     void run() {
         glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE); 
 
+        Object *obj = mObjects[0];
+        // TODO ...^ lol
+
+        GLuint vertexbuffer;
+        glGenBuffers(1, &vertexbuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(obj->vertices().data()), 
+                obj->vertices().data(), GL_STATIC_DRAW);
+
         do {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+
+            glDrawArrays(GL_TRIANGLES, 0, obj->vertices().size());
+            glDisableVertexAttribArray(0);
+            
             glfwSwapBuffers(mWindow);
             glfwPollEvents();
         } while( glfwGetKey(mWindow, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
                 !glfwWindowShouldClose(mWindow));
     }
+
+    void addObject(Object *o) {
+        mObjects.push_back(o);
+    }
+
 private:
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;
     uint32_t mAASamples;
+
+    std::vector<Object *> mObjects;
 };
 
 } /* GLEngine */ 

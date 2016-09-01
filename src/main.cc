@@ -1,6 +1,7 @@
 #include <Common.h>
 #include <PNG.h>
 #include <Backend.h>
+#include <FileReader/OBJFileReader.h>
 
 using namespace GLEngine;
 
@@ -18,8 +19,14 @@ int main(int argc, char *argv[])
     
     LOGP("ciao.png: W = %d, H = %d", img->width(), img->height());
 
+    OBJFileReader obj;
+    Object o;
+    if(obj.load("pikachu.obj", o))
+        LOG("Pikachu loaded ok");
+
     Backend b;
 
+    b.addObject(&o);
     b.init(1024, 768, "Title", 4);
 
     b.run();
