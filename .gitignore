@@ -1,0 +1,12 @@
+bin/*
+obj/*
+.*.sw?
+.DS_Store
+*.o
+*.lo
+*.a
+*.gch
+*.pch
+*.so
+*.d
+*.exe
