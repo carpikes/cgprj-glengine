@@ -1,0 +1,6 @@
+-x
+c++
+-Isrc/glengine
+-Wall
+-Werror
+-std=c++14
