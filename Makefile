@@ -4,7 +4,7 @@ SRCDIR   := src
 SRCS     := $(wildcard $(SRCDIR)/*.cc)
 OBJS     := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(notdir $(basename $(SRCS)))))
 CXXFLAGS := -std=c++14 -Wall -Werror -Isrc/glengine
-LDFLAGS  := -lGL -lpng
+LDFLAGS  := -lGL -lpng -lglfw -lGLEW
 
 all: $(BINDIR)/main
 
