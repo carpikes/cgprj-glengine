@@ -3,7 +3,7 @@ OBJDIR   := obj
 SRCDIR   := src
 SRCS     := $(wildcard $(SRCDIR)/*.cc)
 OBJS     := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(notdir $(basename $(SRCS)))))
-CXXFLAGS := -std=c++14 -Wall -Werror 
+CXXFLAGS := -std=c++14 -Wall -Werror -Isrc/glengine
 LDFLAGS  := -lGL -lpng
 
 all: $(BINDIR)/main
@@ -20,5 +20,6 @@ $(OBJDIR)/%.o: $(SRCDIR)/%.cc
 
 clean:
 	rm -vf bin/*
+	rm -vf obj/*
 
 .PHONY: main clean

@@ -10,3 +10,4 @@ obj/*
 *.so
 *.d
 *.exe
+.*.pyc
