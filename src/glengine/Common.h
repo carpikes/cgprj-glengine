@@ -3,11 +3,15 @@
 
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <memory>
 #include <functional>
 #include <cstring>
+
 #include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include <GL/glew.h>
 #include <GL/gl.h>

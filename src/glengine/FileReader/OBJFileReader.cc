@@ -62,15 +62,10 @@ bool OBJFileReader::load(const string& name, Object &out) {
             ERRP("Cannot understand %s in %s", word, name.c_str());
             fscanf(fp, "%*[^\n]\n"); // Skip whole line
         }
-
-        if(!process(&out)) {
-            fclose(fp);
-            return false;
-        }
     }
 
     fclose(fp);
-    return true;
+    return process(&out);
 } 
 
 bool OBJFileReader::handleReadVertex(FILE *fp, OBJFileReader *obj) {
@@ -115,9 +110,9 @@ bool OBJFileReader::handleReadNormal(FILE *fp, OBJFileReader *obj) {
 bool OBJFileReader::handleReadFace(FILE *fp, OBJFileReader *obj) {
     int32_t vIdx[3], uvIdx[3], nIdx[3];
     int r = fscanf(fp, "%d/%d/%d %d/%d/%d %d/%d/%d\n",
-                        &vIdx[0], &vIdx[1], &vIdx[2],
-                        &uvIdx[0], &uvIdx[1], &uvIdx[2],
-                        &nIdx[0], &nIdx[1], &nIdx[2]);
+                        &vIdx[0], &uvIdx[0], &nIdx[0],
+                        &vIdx[1], &uvIdx[1], &nIdx[1],
+                        &vIdx[2], &uvIdx[2], &nIdx[2]);
 
     if(r != 9) {
         ERRP("Cannot read face in %s", obj->mFileName.c_str());
@@ -151,6 +146,7 @@ bool OBJFileReader::process(Object *out) {
     assert(mVertexIdx.size() == mUvIdx.size());
     assert(mVertexIdx.size() == mNormalIdx.size());
 
+    LOGP("Vertices: %u, Faces: %u", mVertices.size(), mVertexIdx.size());
     for(size_t i = 0; i < mVertexIdx.size(); i++) {
         int32_t vertex = mVertexIdx[i], normal = mNormalIdx[i];
         int32_t uv = mUvIdx[i];
