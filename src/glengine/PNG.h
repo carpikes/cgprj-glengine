@@ -21,15 +21,19 @@ class Image {
     friend class PNGFileFormat;
     public:
         const vector<uint8_t>& Data() const { return mData; }
-        const size_t width() const { return mWidth; }
-        const size_t height() const { return mHeight; }
-        const GLint format() const { return mFormat; }
+        size_t width() const { return mWidth; }
+        size_t height() const { return mHeight; }
+        GLint format() const { return mFormat; }
+
+        GLuint glId() const { return mId; }
+        void setGlId(GLuint id) { mId = id; }
     private:
         Image() { }
 
         vector<uint8_t> mData;
         size_t mWidth, mHeight;
         GLint mFormat;
+        GLuint mId;
 };
 
 class ImageFileFormat {
@@ -148,7 +152,7 @@ private:
 class ImageFactory {
     TAG_DEF("ImageFactory")
 public:
-    static shared_ptr<Image> load(const string& name) {
+    static Image *load(const string& name) {
         ifstream file(name.c_str(), ios::binary | ios::ate);
         std::streamsize size = file.tellg();
         file.seekg(0, ios::beg);
@@ -166,10 +170,11 @@ public:
 
         if(PNGFileFormat::checkHeader(buffer)) {
             PNGFileFormat pngReader;
-            shared_ptr<Image> img(new Image);
+            Image *img = new Image;
 
             if(!pngReader.readImage(buffer, *img)) {
                 ERRP("Cannot read %s", name.c_str());
+                delete img;
                 return nullptr;
             }
 

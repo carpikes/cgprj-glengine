@@ -1,5 +1,6 @@
 #ifndef GLENGINE_FILEREADER_OBJ
 #define GLENGINE_FILEREADER_OBJ
+#pragma once
 
 #include <Common.h>
 #include <Object.h>
@@ -15,16 +16,22 @@ using std::vector;
 class OBJFileReader {
     TAG_DEF("OBJFileReader")
 public:
-    bool load(const string& name, Object &out);
+    OBJFileReader() : mFlushObject(false), mFacesType(0) {}
+
+    bool load(const string& name, ObjectGroup &out);
 
 private:
-    string mFileName;
+    string mFileName, mMaterialName, mNewMaterialName, mCurSubGroup;
+    bool mFlushObject;
+
+    // 0: Uninited, &1 = hasNormals, &2 = hasUv, &4 = Initialized
+    uint32_t mFacesType;
 
     vector<glm::vec3> mVertices, mNormals;
     vector<glm::vec2> mUv;
     vector<int32_t> mVertexIdx, mUvIdx, mNormalIdx;
 
-    bool process(Object *out);
+    bool process(Object &out);
 
     typedef pair<string, std::function<bool(FILE*, OBJFileReader*)>> funcmap_t;
 
@@ -35,7 +42,16 @@ private:
     static bool handleSetMaterialLib(FILE *fp, OBJFileReader *obj);
     static bool handleUseMaterial(FILE *fp, OBJFileReader *obj);
     static bool handleSetShading(FILE *fp, OBJFileReader *obj);
-    static const funcmap_t functions[7];
+    static bool handleChangeGroup(FILE *fp, OBJFileReader *obj);
+    static bool handleSkipLine(FILE *fp, OBJFileReader *obj);
+    static bool readTriplet(const char *s, int32_t out[3]);
+    static const funcmap_t functions[];
+
+    inline void cleanIndices() { 
+        mVertexIdx.clear(); 
+        mUvIdx.clear(); 
+        mNormalIdx.clear();
+    }
 };
     
 } /* GLEngine */ 

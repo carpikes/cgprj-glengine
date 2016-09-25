@@ -2,12 +2,38 @@
 #define GLENGINE_OBJECT_H
 
 #include "Common.h"
+#include "PNG.h"
 
 namespace GLEngine
 {
 
 using std::string;
 using std::vector;
+
+#pragma pack(1)
+struct Vertex {
+    glm::vec3 vertex, normal;
+    glm::vec2 uv;
+};
+#pragma pack()
+
+struct Texture {
+    Texture(Image *img) : img(img) { }
+    bool mBlendH, mBlendV;
+    float mBoostSharpness;
+    float mBrightnessMod, mContrastMod; /* Default: 0 1 */
+    const Image *img;
+    // Offset, scale, turbulence
+};
+
+struct Material {
+    glm::vec3 mAmbientColor, mDiffuseColor, mSpecularColor, mTransmissionFilter;
+    float mSpecularExponent, mAlpha, mOpticalDensity;
+
+    Texture *mAmbientTexture, *mDiffuseTexture, *mSpecularTexture;
+    Texture *mHighlightTexture, *mAlphaTexture;
+    Texture *mBumpTexture, *mDisplacementTexture, *mStencilTexture;
+};
 
 class Object {
     TAG_DEF("Object")
@@ -21,17 +47,27 @@ public:
     inline void setOrientation(const glm::vec4& o) { mOrientation = o; }
     inline const glm::vec4& getOrientation() const { return mOrientation; }
     
-    inline vector<glm::vec3>& vertices() { return mVertices; }
-    inline vector<glm::vec3>& normals() { return mNormals; }
-    inline vector<glm::vec2>& uvs() { return mUVs; }
+    inline vector<Vertex>& vertices() { return mVertices; }
+    inline vector<uint16_t> &faces() { return mFaces; }
+
+    inline void setMaterialType(const string& type) { mMaterialType = type; }
+    inline const string& material() const { return mMaterialType; }
 private:
     string mTag;
     glm::vec3 mPosition;
     glm::vec4 mOrientation;
 
-    vector<glm::vec3> mVertices, mNormals;
-    vector<glm::vec2> mUVs;
+    vector<Vertex> mVertices;
+    vector<uint16_t> mFaces;
+
+    string mMaterialType;
+    bool mUseShading; // unused
 };
+
+struct ObjectGroup {
+    vector<Object> objects;
+};
+
 
 } /* GLEngine */ 
 

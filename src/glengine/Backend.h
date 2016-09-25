@@ -3,6 +3,7 @@
 
 #include <Common.h>
 #include <Object.h>
+#include "ResourceManager.h"
 
 namespace GLEngine
 {
@@ -56,29 +57,71 @@ public:
         return true;
     }
 
+    void loadTextures() {
+        typedef std::unordered_map<string, Image*> map_t;
+        const map_t m = ResourceManager<Image>::expose();
+
+        GLuint *texId = new GLuint[m.size()];
+        glGenTextures(m.size(), texId); 
+
+        int cnt=0;
+        LOGP("Moving %d textures to videocard", m.size());
+        for(map_t::const_iterator i = m.cbegin(); i != m.cend(); i++) {
+            Image *img = i->second;
+            if(img == NULL) {
+                ERR("Error, img == NULL");
+                continue;
+            }
+            img->setGlId(texId[cnt]);
+
+            glBindTexture(GL_TEXTURE_2D, texId[cnt]);
+
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, img->width(), img->height(),
+                    0, GL_RGB, GL_UNSIGNED_BYTE, &(img->Data()[0]));
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            cnt++;
+        }
+
+        delete[] texId;
+    }
+
     void run() {
         glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE); 
 
-        Object *obj = mObjects[0];
-        // TODO ...^ lol
+        vector<GLuint> vbuffers;
+        for(size_t i=0;i<mObjects.size();i++) {
+            Object *obj = mObjects[i];
+            GLuint vertexbuffer;
+            glGenBuffers(1, &vertexbuffer);
+            glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+            glBufferData(GL_ARRAY_BUFFER, 
+                    (obj->vertices().size()) * sizeof(Vertex), 
+                    &obj->vertices()[0], GL_STREAM_DRAW);
 
-        GLuint vertexbuffer;
-        glGenBuffers(1, &vertexbuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-        glBufferData(GL_ARRAY_BUFFER, obj->vertices().size() * sizeof(glm::vec3), 
-                &obj->vertices()[0], GL_STATIC_DRAW);
+            LOGP("Array %i: %u", i, obj->vertices().size());
+            vbuffers.push_back(vertexbuffer);
+        }
+
+        loadTextures();
+
+        LOGP("VBuffers size: %u", vbuffers.size());
 
         GLuint programId = loadShader("main.vs", "main.fs");
         if(programId == 0)
             return; 
 
         glm::mat4 cameraMat = glm::lookAt(
-            glm::vec3(5,1,2), glm::vec3(0,2,0), glm::vec3(0,1,0));
+            glm::vec3(5,10,20), glm::vec3(0,5,0), glm::vec3(0,1,0));
         glm::mat4 projMat = glm::perspective(
                 glm::radians(75.0f), 4.0f/3.0f, 0.1f, 100.0f);
 
-        LOGP("Vertices: %u\n", obj->vertices().size());
         float cnt = 0;
+
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
         do {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -91,21 +134,37 @@ public:
             glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvpMat[0][0]);
 
             glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, NULL);
+            glEnableVertexAttribArray(1);
+            for(size_t i=0;i<mObjects.size();i++) {
+                glBindBuffer(GL_ARRAY_BUFFER, vbuffers[i]);
+                Object *obj = mObjects[i];
+                if(obj == NULL) { ERR("OBJ == null"); return; }
+                Material *mtl = ResourceManager<Material>::get(obj->material());
+                if(mtl == NULL) { ERR("MTL == null"); return; }
+                if(mtl->mDiffuseTexture != NULL)
+                    glBindTexture(GL_TEXTURE_2D, mtl->mDiffuseTexture->img->glId());
+                else
+                    glBindTexture(GL_TEXTURE_2D, 0);
 
-            glDrawArrays(GL_TRIANGLES, 0, obj->vertices().size());
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        NULL);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                        (void *)(2*sizeof(glm::vec3)));
+                glDrawArrays(GL_TRIANGLES, 0, mObjects[i]->vertices().size());
+            }
+            glDisableVertexAttribArray(1);
             glDisableVertexAttribArray(0);
             
             glfwSwapBuffers(mWindow);
             glfwPollEvents();
-            cnt += 0.1f;
+            cnt += 0.01f;
         } while( glfwGetKey(mWindow, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
                 !glfwWindowShouldClose(mWindow));
     }
 
-    void addObject(Object *o) {
-        mObjects.push_back(o);
+    void addObject(ObjectGroup *o) {
+        for(size_t i = 0;i<o->objects.size(); i++)
+            mObjects.push_back(&o->objects[i]);
     }
 
     bool readFile(const string& file, string& out) {

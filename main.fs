@@ -1,6 +1,10 @@
 #version 330 core
-out vec3 color;
+
+in vec2 UV;
+out vec3 oColor;
+
+uniform sampler2D uTexture;
 
 void main() {
-    color = vec3(1,0,0);
+    oColor = texture(uTexture, UV).rgb;
 }

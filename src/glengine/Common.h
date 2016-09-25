@@ -1,13 +1,15 @@
 #ifndef GLEngine_Common_h
 #define GLEngine_Common_h
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <vector>
-#include <memory>
-#include <functional>
+#include <algorithm>
 #include <cstring>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <unordered_map>
+#include <vector>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
