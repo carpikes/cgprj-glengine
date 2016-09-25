@@ -113,28 +113,37 @@ public:
             return; 
 
         glm::mat4 cameraMat = glm::lookAt(
-            glm::vec3(5,10,20), glm::vec3(0,5,0), glm::vec3(0,1,0));
+            glm::vec3(5,2,2), glm::vec3(0,2,0), glm::vec3(0,1,0));
         glm::mat4 projMat = glm::perspective(
-                glm::radians(75.0f), 4.0f/3.0f, 0.1f, 100.0f);
+                glm::radians(75.0f), 4.0f/3.0f, 0.01f, 1000.0f);
 
         float cnt = 0;
 
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LESS);
         //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+        //
+        glm::vec3 light(0,0,0);
         do {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glUseProgram(programId);
             GLuint matrixID = glGetUniformLocation(programId, "MVP");
+            GLuint lightID = glGetUniformLocation(programId, "uLight");
 
             glm::mat4 model = glm::rotate(cnt, glm::vec3(0,1,0));
             glm::mat4 mvpMat = projMat * cameraMat * model;
             
             glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvpMat[0][0]);
 
+            light.x = cos(cnt*2.0f);
+            light.z = sin(cnt*2.0f);
+            light = glm::normalize(light);
+            glUniform3f(lightID, light.x, light.y, light.z);
+
             glEnableVertexAttribArray(0);
             glEnableVertexAttribArray(1);
+            glEnableVertexAttribArray(2);
             for(size_t i=0;i<mObjects.size();i++) {
                 glBindBuffer(GL_ARRAY_BUFFER, vbuffers[i]);
                 Object *obj = mObjects[i];
@@ -146,10 +155,9 @@ public:
                 else
                     glBindTexture(GL_TEXTURE_2D, 0);
 
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        NULL);
-                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                        (void *)(2*sizeof(glm::vec3)));
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);
+                glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(2*sizeof(glm::vec3)));
+                glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(sizeof(glm::vec3)));
                 glDrawArrays(GL_TRIANGLES, 0, mObjects[i]->vertices().size());
             }
             glDisableVertexAttribArray(1);

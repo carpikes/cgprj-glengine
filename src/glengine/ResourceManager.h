@@ -71,6 +71,10 @@ private:
     };
 
     bool _load(const string& name) {
+        auto r = mResources.find(name);
+        if(r != mResources.end())
+            return true;
+
         T* res = ResourceFactory<T>::load(name);
         if( res != nullptr) {
             LOGP("Loaded resource %s", name.c_str());

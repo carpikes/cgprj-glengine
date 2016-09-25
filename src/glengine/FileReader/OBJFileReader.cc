@@ -75,6 +75,7 @@ bool OBJFileReader::load(const string& name, ObjectGroup &out) {
 
         // per il primo usemtl
         if(mFlushObject && mVertexIdx.size() == 0) {
+            ERR("Skipping object");
             mMaterialName = mNewMaterialName;
             mFlushObject = false;
         }

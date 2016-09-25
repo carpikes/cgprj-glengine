@@ -12,9 +12,11 @@ int main(int argc, char *argv[])
 {
     LOG("Starting");
 
-    ResourceManager<ObjectGroup>::load("/tmp/blastoise/BR_Blastoise.obj");
+//    const string filename = "/tmp/ala/XY_AlakazamMega.obj";
+    const string filename = "pikachu.obj";
+    ResourceManager<ObjectGroup>::load(filename);
 
-    ObjectGroup *pikachu = ResourceManager<ObjectGroup>::get("/tmp/blastoise/BR_Blastoise.obj");
+    ObjectGroup *pikachu = ResourceManager<ObjectGroup>::get(filename);
     if(pikachu)
         LOG("Pikachu loaded ok");
     else 
