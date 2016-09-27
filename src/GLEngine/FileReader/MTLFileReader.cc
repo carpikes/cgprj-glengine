@@ -160,13 +160,13 @@ HANDLER(ReadTexture) {
         return false;
     }
 
-    bool res = mResManager.get<Image>(textureName);
+    bool res = mtl->mResManager->get<Image>(textureName);
     if(!res) {
         ERRP("Cannot load texture %s", textureName);
         return false;
     }
 
-    Image *img = mResManager.get<Image>(textureName);
+    Image *img = mtl->mResManager->get<Image>(textureName);
     Texture *tex = new Texture(img);
 
     switch(type) {
@@ -189,13 +189,14 @@ HANDLER(BeginMaterial) {
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 
-    if(!ResourceManager<Material>::load(name)) {
+    // FIXME: i materiali li gestisce il materialmanager!
+    if(!mtl->mResManager->get<Material>(name)) {
         ERR("dafaq");
         exit(-1);
     }
 
     LOGP("Parsing material %s", name);
-    mtl->mCurMaterial = ResourceManager<Material>::get(name);
+    mtl->mCurMaterial = mtl->mResManager->get<Material>(name);
     return true;
 }
 

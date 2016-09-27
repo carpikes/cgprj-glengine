@@ -5,7 +5,6 @@
 #include <GLEngine/Mesh.h>
 #include <GLEngine/Material.h>
 #include <GLEngine/ImageFactory.h>
-#include <GLEngine/FileReader/OBJFileReader.h>
 
 namespace GLEngine
 {
@@ -15,14 +14,19 @@ using std::string;
 class ResourceManager {
     TAG_DEF("ResourceManager")
 public:
-    ResourceManager() {}
+    ResourceManager() : mPath(".") {}
 
     template<typename T>
     inline T* get(const string& name) {
         return (T*) this->_get(name);
     }
+
+    void setPath(const string& path) {
+        mPath = path;
+    }
 private:
     std::unordered_map<string, void*> mResources;
+    string mPath;
 
     enum eTypes {
         TYPE_UNK,
@@ -35,15 +39,7 @@ private:
     void *_get(const string& name);
 
     
-    void *loadObj(const string& name) { 
-        Mesh *o = new Mesh;
-        OBJFileReader obj;
-        if(obj.load(name, *o))
-            return o;
-
-        delete o;
-        return nullptr; 
-    }
+    void *loadObj(const string& name);
 
     void *loadPng(const string& name) { 
         return ImageFactory::load(name); 

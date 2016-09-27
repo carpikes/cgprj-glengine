@@ -16,11 +16,13 @@ using std::vector;
 class OBJFileReader {
     TAG_DEF("OBJFileReader")
 public:
-    OBJFileReader() : mFlushObject(false), mFacesType(0) {}
+    OBJFileReader(ResourceManager *mgr) : 
+        mResManager(mgr), mFlushObject(false), mFacesType(0) {}
 
     bool load(const string& name, Mesh &out);
 
 private:
+    ResourceManager *mResManager;
     string mFileName, mMaterialName, mNewMaterialName, mCurSubGroup;
     bool mFlushObject;
 

@@ -1,5 +1,6 @@
 #include <GLEngine/ResourceManager.h>
 #include <GLEngine/Utils.h>
+#include <GLEngine/FileReader/OBJFileReader.h>
 
 namespace GLEngine
 {
@@ -12,15 +13,16 @@ void* ResourceManager::_load(const string& name) {
     void *res = nullptr;
     string ext = Utils::getExtension(name);
 
+    string rname = mPath + "/" + name;
     if(!ext.compare("obj")) 
-        res = loadObj(name);
+        res = loadObj(rname);
     else if(!ext.compare("png"))
-        res = loadPng(name);
+        res = loadPng(rname);
     else 
         ERRP("Invalid extension for resource %s", name.c_str());
 
     if( res != nullptr) {
-        LOGP("Loaded resource %s", name.c_str());
+        LOGP("Loaded resource %s", rname.c_str());
         mResources[name] = res;
     }
     return res;
@@ -39,6 +41,16 @@ void* ResourceManager::_get(const string& name) {
     }
 
     return r->second;
+}
+
+void *ResourceManager::loadObj(const string& name) {
+    Mesh *o = new Mesh;
+    OBJFileReader obj(this);
+    if(obj.load(name, *o))
+        return o;
+
+    delete o;
+    return nullptr; 
 }
 
 } /* GLEngine */ 

@@ -1,5 +1,4 @@
-bin/*
-obj/*
+build/*
 .*.sw?
 .DS_Store
 *.o

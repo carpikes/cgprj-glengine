@@ -1,6 +1,6 @@
 #include <GLEngine/FileReader/OBJFileReader.h>
 #include <GLEngine/FileReader/MTLFileReader.h>
-#include <ResourceManager.h>
+#include <GLEngine/ResourceManager.h>
 
 namespace GLEngine
 {
@@ -90,7 +90,7 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
             cleanIndices();
             mFlushObject = false;
             mMaterialName = mNewMaterialName;
-            out.objects.push_back(obj);
+            out.getParts().push_back(obj);
             obj = MeshPart();
         }
     }
@@ -103,7 +103,7 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
     }
 
     fclose(fp);
-    out.objects.push_back(obj);
+    out.getParts().push_back(obj);
     return true;
 } 
 
@@ -232,7 +232,7 @@ bool OBJFileReader::handleSetMaterialLib(FILE *fp, OBJFileReader *obj) {
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 
-    MTLFileReader mtl;
+    MTLFileReader mtl(obj->mResManager);
     mtl.load(name);
     return true;
 }
@@ -297,7 +297,7 @@ bool OBJFileReader::process(MeshPart &out) {
         out.faces().push_back(i);
     }
     LOGP("Writing material name %s", this->mMaterialName.c_str());
-    out.setMaterialType(this->mMaterialName);
+    out.setMaterial(this->mMaterialName);
     return true;
 }
 

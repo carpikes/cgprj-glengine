@@ -1,25 +1,11 @@
-BINDIR   := bin
-OBJDIR   := obj
-SRCDIR   := src
-SRCS     := $(wildcard $(SRCDIR)/*.cc)
-OBJS     := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(notdir $(basename $(SRCS)))))
-CXXFLAGS := -std=c++14 -Wall -Werror -Isrc/glengine
-LDFLAGS  := -lGL -lpng -lglfw -lGLEW
+all: build project
 
-all: $(BINDIR)/main
+build:
+	@mkdir -p build
+	cd build && cmake ..
 
-$(BINDIR)/main: $(OBJS)
-	@echo "[LD]  $@"
-	@mkdir -p $(BINDIR)
-	@$(CXX) $(LDFLAGS) $< -o $@
+project: 
+	cd build && make -j8
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.cc
-	@echo "[CXX] $<"
-	@mkdir -p $(OBJDIR)
-	$(CXX) -c $(CXXFLAGS) $< -o $@
-
-clean:
-	rm -vf bin/*
-	rm -vf obj/*
-
-.PHONY: main clean
+run: build project
+	cd build && src/demo

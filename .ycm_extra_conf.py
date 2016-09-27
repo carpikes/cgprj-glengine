@@ -36,10 +36,10 @@ import ycm_core
 flags = [
     '-x',
     'c++',
-    '-Isrc/glengine',
+    '-Iinclude',
     '-Wall',
     '-Werror',
-    '-std=c++14',
+    '-std=c++11',
 ]
 
 
