@@ -9,6 +9,7 @@
 #include <memory>
 #include <sstream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -22,4 +23,15 @@
 #include <png.h>
 
 #include "Log.h"
+
+#pragma pack(1)
+struct Vertex {
+    glm::vec3 vertex, normal;
+    glm::vec2 uv;
+};
+#pragma pack()
+
+typedef GLuint VideoPtr;
+static constexpr VideoPtr InvalidVideoPtr = 0;
+
 #endif /* ifndef GLEngine_Common_h */

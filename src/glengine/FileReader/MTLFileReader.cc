@@ -1,5 +1,5 @@
-#include "MTLFileReader.h"
-#include <ResourceManager.h>
+#include <GLEngine/FileReader/MTLFileReader.h>
+#include <GLEngine/MaterialManager.h>
 
 namespace GLEngine
 {
@@ -160,13 +160,13 @@ HANDLER(ReadTexture) {
         return false;
     }
 
-    bool res = ResourceManager<Image>::load(textureName);
+    bool res = mResManager.get<Image>(textureName);
     if(!res) {
         ERRP("Cannot load texture %s", textureName);
         return false;
     }
 
-    Image *img = ResourceManager<Image>::get(textureName);
+    Image *img = mResManager.get<Image>(textureName);
     Texture *tex = new Texture(img);
 
     switch(type) {

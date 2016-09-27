@@ -1,9 +1,9 @@
 #ifndef GLENGINE_FILEREADER_MTL
 #define GLENGINE_FILEREADER_MTL
-#pragma once
 
-#include <Common.h>
-#include <Object.h>
+#include <GLEngine/Common.h>
+#include <GLEngine/Mesh.h>
+#include <GLEngine/ResourceManager.h>
 
 namespace GLEngine
 {
@@ -16,11 +16,13 @@ using std::vector;
 class MTLFileReader {
     TAG_DEF("MTLFileReader")
 public:
+    MTLFileReader(ResourceManager *mgr) : mResManager(mgr) {}
     bool load(const string& name);
 
 private:
     string mFileName;
     Material *mCurMaterial;
+    ResourceManager *mResManager;
 
     typedef struct { 
         string name;

@@ -1,5 +1,5 @@
-#include "OBJFileReader.h"
-#include "MTLFileReader.h"
+#include <GLEngine/FileReader/OBJFileReader.h>
+#include <GLEngine/FileReader/MTLFileReader.h>
 #include <ResourceManager.h>
 
 namespace GLEngine
@@ -17,7 +17,7 @@ const OBJFileReader::funcmap_t OBJFileReader::functions[] = {
     std::make_pair("o",         OBJFileReader::handleSkipLine),
 };
 
-bool OBJFileReader::load(const string& name, ObjectGroup &out) {
+bool OBJFileReader::load(const string& name, Mesh &out) {
     mFileName = name;
 
     FILE *fp = std::fopen(name.c_str(), "r");
@@ -29,9 +29,9 @@ bool OBJFileReader::load(const string& name, ObjectGroup &out) {
     mVertices.clear(); mNormals.clear(); mUv.clear();
     cleanIndices();
     
-    out.objects.clear();
+    out.getParts().clear();
 
-    Object obj;
+    MeshPart obj;
 
     mFlushObject = false;
     mCurSubGroup = "";
@@ -91,7 +91,7 @@ bool OBJFileReader::load(const string& name, ObjectGroup &out) {
             mFlushObject = false;
             mMaterialName = mNewMaterialName;
             out.objects.push_back(obj);
-            obj = Object();
+            obj = MeshPart();
         }
     }
 
@@ -268,7 +268,7 @@ bool OBJFileReader::handleChangeGroup(FILE *fp, OBJFileReader *obj) {
     return true;
 }
 
-bool OBJFileReader::process(Object &out) {
+bool OBJFileReader::process(MeshPart &out) {
     //assert(mVertexIdx.size() == mUvIdx.size());
     //assert(mVertexIdx.size() == mNormalIdx.size());
 

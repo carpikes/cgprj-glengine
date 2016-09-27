@@ -3,7 +3,7 @@
 
 #include <cstdio>
 #include <cstdarg>
-#include <Singleton.h>
+#include <GLEngine/Singleton.h>
 
 namespace GLEngine {
 

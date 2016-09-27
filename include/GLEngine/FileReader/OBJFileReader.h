@@ -2,8 +2,8 @@
 #define GLENGINE_FILEREADER_OBJ
 #pragma once
 
-#include <Common.h>
-#include <Object.h>
+#include <GLEngine/Common.h>
+#include <GLEngine/Mesh.h>
 
 namespace GLEngine
 {
@@ -18,7 +18,7 @@ class OBJFileReader {
 public:
     OBJFileReader() : mFlushObject(false), mFacesType(0) {}
 
-    bool load(const string& name, ObjectGroup &out);
+    bool load(const string& name, Mesh &out);
 
 private:
     string mFileName, mMaterialName, mNewMaterialName, mCurSubGroup;
@@ -31,7 +31,7 @@ private:
     vector<glm::vec2> mUv;
     vector<int32_t> mVertexIdx, mUvIdx, mNormalIdx;
 
-    bool process(Object &out);
+    bool process(MeshPart &out);
 
     typedef pair<string, std::function<bool(FILE*, OBJFileReader*)>> funcmap_t;
 

@@ -11,21 +11,19 @@ TAG_DEF("Main")
 int main(int argc, char *argv[])
 {
     LOG("Starting");
+    Backend b;
 
-//    const string filename = "/tmp/ala/XY_AlakazamMega.obj";
-    const string filename = "pikachu.obj";
-    ResourceManager<ObjectGroup>::load(filename);
+    b.init(1024,768, "Test", 4);
 
-    ObjectGroup *pikachu = ResourceManager<ObjectGroup>::get(filename);
+    sResourceManager.setBackend(&b);
+
+    ObjectGroup *pikachu = sResourceManager.get<ObjectGroup>("pikachu.obj");
     if(pikachu)
         LOG("Pikachu loaded ok");
     else 
         return 0;
 
-    Backend b;
-
     b.addObject(pikachu);
-    b.init(1024, 768, "Title", 4);
 
     b.run();
     return 0;
