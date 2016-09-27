@@ -4,6 +4,7 @@
 
 #include <GLEngine/Common.h>
 #include <GLEngine/Mesh.h>
+#include <GLEngine/Engine.h>
 
 namespace GLEngine
 {
@@ -16,18 +17,21 @@ using std::vector;
 class OBJFileReader {
     TAG_DEF("OBJFileReader")
 public:
-    OBJFileReader(ResourceManager *mgr) : 
-        mResManager(mgr), mFlushObject(false), mFacesType(0) {}
+    OBJFileReader(Engine *engine, const string& path) : 
+        mEngine(engine), mFlushObject(false), mFacesType(0), mPath(path) {}
 
     bool load(const string& name, Mesh &out);
 
 private:
-    ResourceManager *mResManager;
+    Engine *mEngine;
     string mFileName, mMaterialName, mNewMaterialName, mCurSubGroup;
+    string mCurMatlibName;
     bool mFlushObject;
 
     // 0: Uninited, &1 = hasNormals, &2 = hasUv, &4 = Initialized
     uint32_t mFacesType;
+
+    const string& mPath;
 
     vector<glm::vec3> mVertices, mNormals;
     vector<glm::vec2> mUv;

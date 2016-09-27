@@ -34,10 +34,11 @@ const MTLFileReader::funcmap_t MTLFileReader::functions[] = {
 
 bool MTLFileReader::load(const string& name) {
     mFileName = name;
+    string fullName = mPath + "/" + name;
 
-    FILE *fp = std::fopen(name.c_str(), "r");
+    FILE *fp = std::fopen(fullName.c_str(), "r");
     if(!fp) {
-        ERRP("Cannot load %s", name.c_str());
+        ERRP("Cannot load %s", fullName.c_str());
         return false;
     }
 
@@ -49,7 +50,7 @@ bool MTLFileReader::load(const string& name) {
 
         size_t len = strlen(word);
         if(len >= 120) {
-            ERRP("Cannot load %s, lines are too long", name.c_str());
+            ERRP("Cannot load %s, lines are too long", fullName.c_str());
             fclose(fp);
             return false;
         }
@@ -76,7 +77,7 @@ bool MTLFileReader::load(const string& name) {
         }
 
         if(invalid) {
-            ERRP("Cannot understand %s in %s", word, name.c_str());
+            ERRP("Cannot understand %s in %s", word, fullName.c_str());
             fscanf(fp, "%*[^\n]\n"); // Skip whole line
         }
     }
@@ -152,6 +153,8 @@ HANDLER(ReadInteger) {
 }
 
 HANDLER(ReadTexture) {
+    ResourceManager& resMgr = mtl->mEngine->getResourceManager();
+
     if(mtl->mCurMaterial == NULL) return false;
     char textureName[128] = {0};
     int r = fscanf(fp, "%120s\n", textureName);
@@ -160,13 +163,13 @@ HANDLER(ReadTexture) {
         return false;
     }
 
-    bool res = mtl->mResManager->get<Image>(textureName);
+    bool res = resMgr.get<Image>(textureName);
     if(!res) {
         ERRP("Cannot load texture %s", textureName);
         return false;
     }
 
-    Image *img = mtl->mResManager->get<Image>(textureName);
+    Image *img = resMgr.get<Image>(textureName);
     Texture *tex = new Texture(img);
 
     switch(type) {
@@ -185,72 +188,18 @@ HANDLER(ReadTexture) {
 }
 
 HANDLER(BeginMaterial) {
+    MaterialManager& mtlMgr = mtl->mEngine->getMaterialManager();
     char name[32] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
-
-    // FIXME: i materiali li gestisce il materialmanager!
-    if(!mtl->mResManager->get<Material>(name)) {
-        ERR("dafaq");
-        exit(-1);
-    }
 
     LOGP("Parsing material %s", name);
-    mtl->mCurMaterial = mtl->mResManager->get<Material>(name);
+    mtl->mCurMaterial = std::make_shared<Material>();
+
+    const string fullName = mtlMgr.buildMaterialName(mtl->mFileName, name);
+    mtlMgr.add(fullName, mtl->mCurMaterial);
     return true;
 }
-
-/*
-bool MTLFileReader::handleUseMaterial(FILE *fp, MTLFileReader *obj) {
-    char name[32] = {0};
-    if(fscanf(fp, "%32s", name) != 1)
-        return false;
-
-    LOGP("Setting material to %s", name);
-    obj->mNewMaterialName = name;
-    obj->mFlushObject = true;
-    return true;
-}
-
-bool MTLFileReader::handleSetShading(FILE *fp, MTLFileReader *obj) {
-    fscanf(fp, "%*s");
-    return true;
-}
-
-bool MTLFileReader::handleChangeGroup(FILE *fp, MTLFileReader *obj) {
-    char name[32] = {0};
-    if(fscanf(fp, "%32s", name) != 1)
-        return false;
-    LOGP("Changing group to %s", name);
-
-    obj->mCurSubGroup = name; //FIXME: Questo fa apparire errori con nome errato
-    return true;
-}
-
-bool MTLFileReader::process(Object &out) {
-    assert(mVertexIdx.size() == mUvIdx.size());
-    assert(mVertexIdx.size() == mNormalIdx.size());
-
-    LOGP("Vertices: %u, Vertex IDX: %u", mVertices.size(), mVertexIdx.size());
-    for(size_t i = 0; i < mVertexIdx.size(); i++) {
-        int32_t vertex = mVertexIdx[i], normal = mNormalIdx[i];
-        int32_t uv = mUvIdx[i];
-        if(vertex < 1 || (size_t)vertex > mVertices.size() || 
-            normal < 1 || (size_t)normal > mNormals.size()  ||
-            uv < 1     || (size_t)uv > mUv.size()) {
-            ERRP("Invalid index (%d,%d,%d)", vertex, normal, uv);
-            return false;
-        }
-
-        out.vertices().push_back(mVertices[vertex-1]);
-        out.normals().push_back(mNormals[normal-1]);
-        out.uvs().push_back(mUv[uv-1]);
-
-        out.setMaterialType(this->mMaterialName);
-    }
-    return true;
-}
-*/
 
 #undef HANDLER
 

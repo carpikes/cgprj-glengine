@@ -11,10 +11,12 @@ namespace GLEngine
 
 using std::string;
 
+class Engine;
+
 class ResourceManager {
     TAG_DEF("ResourceManager")
 public:
-    ResourceManager() : mPath(".") {}
+    ResourceManager(Engine *engine) : mPath("."), mEngine(engine) {}
 
     template<typename T>
     inline T* get(const string& name) {
@@ -27,6 +29,7 @@ public:
 private:
     std::unordered_map<string, void*> mResources;
     string mPath;
+    Engine *mEngine;
 
     enum eTypes {
         TYPE_UNK,
@@ -39,7 +42,7 @@ private:
     void *_get(const string& name);
 
     
-    void *loadObj(const string& name);
+    void *loadObj(const string& path, const string& name);
 
     void *loadPng(const string& name) { 
         return ImageFactory::load(name); 

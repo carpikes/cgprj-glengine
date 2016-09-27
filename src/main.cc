@@ -8,19 +8,12 @@ using namespace GLEngine;
 
 TAG_DEF("Main")
 
-int main(int argc, char *argv[])
-{
-    (void) argc; (void) argv;
-    LOG("Starting");
-    //Renderer b;
-    Engine e;
+int main(int argc, char *argv[]) {
+    LOG("Starting"); (void) argc; (void) argv;
+    Engine glEngine;
 
-    //b.init(1024,768, "Test", 4);
-
-    //sResourceManager.setBackend(&b);
-
-    e.getResourceManager().setPath("../data");
-    Mesh *pikachu = e.getResourceManager().get<Mesh>("pikachu.obj");
+    glEngine.setDataPath("../data");
+    Mesh *pikachu = glEngine.getResourceManager().get<Mesh>("pikachu.obj");
     if(pikachu)
         LOG("Pikachu loaded ok");
     else 

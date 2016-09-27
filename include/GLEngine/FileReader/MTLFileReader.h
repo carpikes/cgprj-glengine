@@ -3,7 +3,7 @@
 
 #include <GLEngine/Common.h>
 #include <GLEngine/Mesh.h>
-#include <GLEngine/ResourceManager.h>
+#include <GLEngine/Engine.h>
 
 namespace GLEngine
 {
@@ -16,13 +16,15 @@ using std::vector;
 class MTLFileReader {
     TAG_DEF("MTLFileReader")
 public:
-    MTLFileReader(ResourceManager *mgr) : mResManager(mgr) {}
-    bool load(const string& name);
+    MTLFileReader(Engine *engine, const string& path) : 
+        mEngine(engine), mPath(path) {}
 
+    bool load(const string& name);
 private:
     string mFileName;
-    Material *mCurMaterial;
-    ResourceManager *mResManager;
+    MaterialPtr mCurMaterial;
+    Engine *mEngine;
+    const string& mPath;
 
     typedef struct { 
         string name;

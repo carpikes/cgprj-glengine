@@ -1,6 +1,6 @@
 #include <GLEngine/FileReader/OBJFileReader.h>
 #include <GLEngine/FileReader/MTLFileReader.h>
-#include <GLEngine/ResourceManager.h>
+#include <GLEngine/MaterialManager.h>
 
 namespace GLEngine
 {
@@ -18,13 +18,13 @@ const OBJFileReader::funcmap_t OBJFileReader::functions[] = {
 };
 
 bool OBJFileReader::load(const string& name, Mesh &out) {
-    mFileName = name;
-
-    FILE *fp = std::fopen(name.c_str(), "r");
+    mFileName = mPath + "/" + name;
+    FILE *fp = std::fopen(mFileName.c_str(), "r");
     if(!fp) {
         ERRP("Cannot load %s", name.c_str());
         return false;
     }
+    LOGP("Loading %s", name.c_str());
 
     mVertices.clear(); mNormals.clear(); mUv.clear();
     cleanIndices();
@@ -198,7 +198,7 @@ bool OBJFileReader::handleReadFace(FILE *fp, OBJFileReader *obj) {
             return false;
         }
         obj->mFacesType = 4 | (((uvIdx[0] > 0) & 1) << 1) | ((nIdx[0] > 0) & 1);
-        LOGP("HasUvMapping: %d; HasNormalMapping: %d, FacesType: %d", 
+        DEBP("HasUvMapping: %d; HasNormalMapping: %d, FacesType: %d", 
             ((uvIdx[0] > 0) & 1),
             (nIdx[0] > 0), obj->mFacesType);
     }
@@ -232,7 +232,8 @@ bool OBJFileReader::handleSetMaterialLib(FILE *fp, OBJFileReader *obj) {
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 
-    MTLFileReader mtl(obj->mResManager);
+    obj->mCurMatlibName = name;
+    MTLFileReader mtl(obj->mEngine, obj->mPath);
     mtl.load(name);
     return true;
 }
@@ -242,8 +243,14 @@ bool OBJFileReader::handleUseMaterial(FILE *fp, OBJFileReader *obj) {
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 
-    LOGP("Setting material to %s", name);
-    obj->mNewMaterialName = name;
+    if(obj->mCurMatlibName.length() == 0) {
+        ERR("Calling 'usemtl' without a 'mtllib'!");
+        return false;
+    }
+
+    DEBP("Setting material to %s", name);
+    obj->mNewMaterialName = MaterialManager::buildMaterialName(
+        obj->mCurMatlibName, name);
     obj->mFlushObject = true;
     return true;
 }
@@ -262,7 +269,7 @@ bool OBJFileReader::handleChangeGroup(FILE *fp, OBJFileReader *obj) {
     char name[32] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
-    LOGP("Changing group to %s", name);
+    DEBP("Changing group to %s", name);
 
     obj->mCurSubGroup = name; //FIXME: Questo fa apparire errori con nome errato
     return true;
@@ -272,7 +279,7 @@ bool OBJFileReader::process(MeshPart &out) {
     //assert(mVertexIdx.size() == mUvIdx.size());
     //assert(mVertexIdx.size() == mNormalIdx.size());
 
-    LOGP("Vertices: %u, Vertex IDX: %u", mVertices.size(), mVertexIdx.size());
+    DEBP("Vertices: %u, Vertex IDX: %u", mVertices.size(), mVertexIdx.size());
     for(size_t i = 0; i < mVertexIdx.size(); i++) {
         int32_t normal = 0, uv = 0;
         int32_t vertex = mVertexIdx[i];
@@ -296,7 +303,7 @@ bool OBJFileReader::process(MeshPart &out) {
 
         out.faces().push_back(i);
     }
-    LOGP("Writing material name %s", this->mMaterialName.c_str());
+    DEBP("Writing material name %s", this->mMaterialName.c_str());
     out.setMaterial(this->mMaterialName);
     return true;
 }

@@ -11,11 +11,14 @@ namespace GLEngine
 
 class Engine {
 public:
-    Engine() : mRenderer(nullptr), mCurScene(nullptr) {
+    Engine() : mRenderer(nullptr), mCurScene(nullptr), mResManager(this) {
         mRenderer = new Renderer();
+
+        // TODO: hardcoded, right?
+        mRenderer->init(1024, 768, "GLEngine test", 4); 
     }
 
-    virtual ~Engine(){
+    virtual ~Engine() {
         delete mRenderer; 
     }
 
@@ -43,6 +46,15 @@ public:
 
     MaterialManager& getMaterialManager() {
         return mMatManager;
+    }
+
+    void setDataPath(const string& path) {
+        if(path.length() == 0) {
+            setDataPath(".");
+            return;
+        } 
+        
+        mResManager.setPath(path);
     }
 private:
     Renderer *mRenderer;

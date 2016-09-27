@@ -15,7 +15,7 @@ void* ResourceManager::_load(const string& name) {
 
     string rname = mPath + "/" + name;
     if(!ext.compare("obj")) 
-        res = loadObj(rname);
+        res = loadObj(name, mPath);
     else if(!ext.compare("png"))
         res = loadPng(rname);
     else 
@@ -43,9 +43,9 @@ void* ResourceManager::_get(const string& name) {
     return r->second;
 }
 
-void *ResourceManager::loadObj(const string& name) {
+void *ResourceManager::loadObj(const string& name, const string& path) {
     Mesh *o = new Mesh;
-    OBJFileReader obj(this);
+    OBJFileReader obj(this->mEngine, path);
     if(obj.load(name, *o))
         return o;
 
