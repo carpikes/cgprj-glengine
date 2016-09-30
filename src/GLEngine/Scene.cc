@@ -22,8 +22,8 @@ bool Scene::setUp(Renderer *renderer) {
 
     // move meshes & textures to videocard 
     size_t numberOfBuffers = 0;
-    for(const MeshPtr& m : mMeshes)
-        numberOfBuffers += m->getParts().size();
+    for(const ObjectPtr o : mObjects)
+        numberOfBuffers += o->getMesh()->getParts().size();
 
     mVideoPtrs.clear();
     mVideoPtrs.resize(numberOfBuffers, InvalidVideoPtr);
@@ -35,10 +35,11 @@ bool Scene::setUp(Renderer *renderer) {
     }
     // TODO allocate faces buffer
 
-    assert(mVideoPtrs.size() >= mMeshes.size());
+    assert(mVideoPtrs.size() >= mObjects.size());
 
     size_t i = 0;
-    for(MeshPtr& m : mMeshes) {
+    for(ObjectPtr o : mObjects) {
+        MeshPtr m = o->getMesh();
         for(MeshPart& mp : m->getParts()) {
             renderer->writeVertices(mVideoPtrs[i], mp.vertices());
             mp.setVideoPtr(mVideoPtrs[i]);
@@ -52,8 +53,8 @@ bool Scene::setUp(Renderer *renderer) {
         
     std::unordered_set<Image *> usedImages;
     MaterialManager& matManager = mEngine->getMaterialManager();
-    for(const MeshPtr m : mMeshes)
-        for(MeshPart& mp : m->getParts()) {
+    for(const ObjectPtr o : mObjects)
+        for(MeshPart& mp : o->getMesh()->getParts()) {
             MaterialPtr mat = matManager.get(mp.material());
             mat->appendTextures(usedImages);
         }
@@ -74,10 +75,41 @@ bool Scene::shutDown() {
     return true;
 }
 
-bool Scene::render(Camera *camera) {
+bool Scene::render(LookAtCamera *camera) {
     if(!mCanRender)
         return false;
 
+    for(int i=0;i<3;i++)
+        glEnableVertexAttribArray(i);
+
+    mRenderer->setEyePos(camera->getCameraPos());
+    MaterialManager& mtlMgr = mEngine->getMaterialManager();
+    for(ObjectPtr o : mObjects) {
+        MeshPtr m = o->getMesh();
+        glm::mat4 vpMat = camera->getVPMatrix();
+        glm::mat4 mvpMat = vpMat * o->getModelMatrix();
+
+        mRenderer->setMVP(mvpMat);
+        // Da spostare nella mesh
+        for(MeshPart& p : m->getParts()) {
+            MaterialPtr mtl = mtlMgr.get(p.material());
+            VideoPtr ptr = p.videoPtr();
+
+            glBindBuffer(GL_ARRAY_BUFFER, ptr);
+            for(int i=0;i<3;i++)
+            glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                      (void *) (i * sizeof(glm::vec3)));
+
+            if(mtl->mDiffuseTexture && mtl->mDiffuseTexture->img)
+                glBindTexture(GL_TEXTURE_2D, 
+                              mtl->mDiffuseTexture->img->videoPtr());
+            
+            glDrawArrays(GL_TRIANGLES, 0, p.vertices().size());
+        } 
+    }
+
+    for(int i=0;i<3;i++)
+        glDisableVertexAttribArray(i);
     return true;
 }
     

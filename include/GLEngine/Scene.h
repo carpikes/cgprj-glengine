@@ -3,13 +3,13 @@
 
 #include <GLEngine/Common.h>
 #include <GLEngine/Renderer.h>
+#include <GLEngine/Camera.h>
 
 namespace GLEngine
 {
 
 using std::vector;
 
-class Camera{};
 class Engine;
 
 class Scene {
@@ -18,9 +18,17 @@ public:
     Scene(Engine *engine) : mRenderer(nullptr), mCanRender(false), 
         mEngine(engine) {}
 
-    bool addMesh(MeshPtr mesh) {
-        mMeshes.push_back(mesh);
+    bool addObject(ObjectPtr mesh) {
+        mObjects.push_back(mesh);
         return true;
+    }
+
+    void setLightPos(const glm::vec3& pos) {
+        mRenderer->setLightPos(pos);
+    }
+
+    void setLightRot(const glm::vec3& rot) {
+        mRenderer->setLightRot(rot);
     }
 
     /** Load all resources */
@@ -32,13 +40,14 @@ public:
     // TODO: camera? 
 
     /** Render a frame */
-    bool render(Camera *camera);
+    bool render(LookAtCamera *camera);
 private:
     Renderer *mRenderer;
     bool mCanRender;
     Engine *mEngine;
-    std::vector<MeshPtr> mMeshes;
+    std::vector<ObjectPtr> mObjects;
     std::vector<VideoPtr> mVideoPtrs, mTextureIds;
+    glm::vec3 mLightRot;
 };
     
 } /* GLEngine */ 

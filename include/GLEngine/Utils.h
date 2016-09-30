@@ -18,8 +18,13 @@ class Utils {
         return ext;
     }
 
-    static bool readFile(const string& file, string& out) {
-        std::ifstream fp(file.c_str());
+    static bool readFile(const string& path, const string& file, string& out) {
+        std::stringstream ss;
+        ss << path;
+        ss << "/";
+        ss << file;
+
+        std::ifstream fp(ss.str().c_str());
         if(!fp.good())
             return false;
 

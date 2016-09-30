@@ -19,8 +19,14 @@ struct ShaderElement {
 class ShaderManager {
     TAG_DEF("ShaderManager")
 public:
+    ShaderManager() : mPath(".") {}
     GLuint load(const std::vector<ShaderElement>& elements);
+
+    void setPath(const std::string& path) {
+        mPath = path;
+    }
 private:
+    std::string mPath;
     void freeShaders(std::vector<GLuint>& shaders);
     GLuint linkShaders(std::vector<GLuint>& shaders);
     bool compileShaders(const std::vector<ShaderElement>& el, 

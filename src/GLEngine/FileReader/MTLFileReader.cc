@@ -163,13 +163,12 @@ HANDLER(ReadTexture) {
         return false;
     }
 
-    bool res = resMgr.get<Image>(textureName);
-    if(!res) {
+    Image *img = resMgr.get<Image>(textureName);
+    if(!img) {
         ERRP("Cannot load texture %s", textureName);
         return false;
     }
 
-    Image *img = resMgr.get<Image>(textureName);
     Texture *tex = new Texture(img);
 
     switch(type) {

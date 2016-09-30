@@ -43,84 +43,59 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
-    return true;
-}
-
-void Renderer::run() {
     glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE); 
 
-    vector<GLuint> vbuffers;
-
-
-    LOGP("VBuffers size: %u", vbuffers.size());
-
-    GLuint programId = mShaderManager.load( {
+    mProgramId = mShaderManager.load( {
         { ShaderType::VERTEX_SHADER, "main.vs" },
         { ShaderType::FRAGMENT_SHADER, "main.fs" }
     });
 
-    if(programId == 0)
-        return; 
-
-    glm::mat4 cameraMat = glm::lookAt(
-        glm::vec3(5,2,2), glm::vec3(0,2,0), glm::vec3(0,1,0));
-    glm::mat4 projMat = glm::perspective(
-            glm::radians(75.0f), 4.0f/3.0f, 0.01f, 1000.0f);
-
-    float cnt = 0;
+    if(mProgramId == 0)
+        return false; 
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    //glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
-    //
-    glm::vec3 light(0,0,0);
-    do {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(programId);
-        GLuint matrixID = glGetUniformLocation(programId, "MVP");
-        GLuint lightID = glGetUniformLocation(programId, "uLight");
+    glUseProgram(mProgramId);
+    mMVPPtr = glGetUniformLocation(mProgramId, "MVP");
+    mLightPosPtr = glGetUniformLocation(mProgramId, "uLightPos");
+    mLightRotPtr = glGetUniformLocation(mProgramId, "uLightRot");
+    mEyePosPtr = glGetUniformLocation(mProgramId, "uEyePos");
 
-        glm::mat4 model = glm::rotate(cnt, glm::vec3(0,1,0));
-        glm::mat4 mvpMat = projMat * cameraMat * model;
-        
-        glUniformMatrix4fv(matrixID, 1, GL_FALSE, &mvpMat[0][0]);
+    return true;
+}
 
-        light.x = cos(cnt*2.0f);
-        light.z = sin(cnt*2.0f);
-        light = glm::normalize(light);
-        glUniform3f(lightID, light.x, light.y, light.z);
+bool Renderer::isRunning() {
+    return  glfwGetKey(mWindow, GLFW_KEY_ESCAPE) != GLFW_PRESS && 
+           !glfwWindowShouldClose(mWindow);
+}
 
-        /*
-        glEnableVertexAttribArray(0);
-        glEnableVertexAttribArray(1);
-        glEnableVertexAttribArray(2);
-        for(size_t i=0;i<mObjects.size();i++) {
-            glBindBuffer(GL_ARRAY_BUFFER, vbuffers[i]);
-            Object *obj = mObjects[i];
-            if(obj == NULL) { ERR("OBJ == null"); return; }
-            Material *mtl = ResourceManager<Material>::get(obj->material());
-            if(mtl == NULL) { ERR("MTL == null"); return; }
-            if(mtl->mDiffuseTexture != NULL)
-                glBindTexture(GL_TEXTURE_2D, mtl->mDiffuseTexture->img->glId());
-            else
-                glBindTexture(GL_TEXTURE_2D, 0);
+void Renderer::prepareFrame() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
 
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), NULL);
-            glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(2*sizeof(glm::vec3)));
-            glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void *)(sizeof(glm::vec3)));
-            glDrawArrays(GL_TRIANGLES, 0, mObjects[i]->vertices().size());
-        }
-        glDisableVertexAttribArray(2);
-        glDisableVertexAttribArray(1);
-        glDisableVertexAttribArray(0);
-        */
-        
-        glfwSwapBuffers(mWindow);
-        glfwPollEvents();
-        cnt += 0.01f;
-    } while( glfwGetKey(mWindow, GLFW_KEY_ESCAPE) != GLFW_PRESS &&
-            !glfwWindowShouldClose(mWindow));
+void Renderer::endFrame() {
+    glfwSwapBuffers(mWindow);
+    glfwPollEvents();
+}
+
+void Renderer::setMVP(const glm::mat4& mvp) {
+    glUniformMatrix4fv(mMVPPtr, 1, GL_FALSE, &mvp[0][0]);
+}
+
+void Renderer::setLightPos(const glm::vec3& light) {
+    glUniform3f(mLightPosPtr, light.x, light.y, light.z);
+}
+
+void Renderer::setLightRot(const glm::vec3& light) {
+    glUniform3f(mLightRotPtr, light.x, light.y, light.z);
+}
+
+void Renderer::setEyePos(const glm::vec3& eye) {
+    glUniform3f(mEyePosPtr, eye.x, eye.y, eye.z);
+}
+
+void Renderer::run() {
 }
 
 bool Renderer::allocateVertexBuffers(size_t number, std::vector<VideoPtr>& out) {

@@ -52,16 +52,17 @@ GLuint ShaderManager::linkShaders(std::vector<GLuint>& shaders) {
     return programId;
 }
 
-bool ShaderManager::compileShaders(
-        const std::vector<ShaderElement>& el, std::vector<GLuint>& out) {
+bool ShaderManager::compileShaders(const std::vector<ShaderElement>& el, 
+                                   std::vector<GLuint>& out) {
     if(out.size() > 0)
         freeShaders(out);
     out.clear();
 
     for(const ShaderElement& e : el) {
         std::string src;
-        if(!Utils::readFile(e.filename, src)) {
-            ERRP("Cannot read shader %s", e.filename.c_str()); 
+        if(!Utils::readFile(mPath, e.filename, src)) {
+            ERRP("Cannot read shader %s in %s", e.filename.c_str(), 
+                                                mPath.c_str()); 
             return 0;
         }
 

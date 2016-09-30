@@ -19,9 +19,15 @@ public:
     bool init(size_t width, size_t height, const string& title, 
               uint32_t aaSamples);
 
+    bool isRunning();
+    void prepareFrame();
+    void endFrame();
     void run();
 
-    // da implementare. meglio qua o da altre parti? (tipo engine)
+    void setMVP(const glm::mat4& mvp);
+    void setLightPos(const glm::vec3& light);
+    void setLightRot(const glm::vec3& light);
+    void setEyePos(const glm::vec3& eye);
 
     bool allocateVertexBuffers(size_t number, std::vector<VideoPtr>& out);
     bool allocateTextureBuffers(size_t number, std::vector<VideoPtr>& out);
@@ -29,7 +35,13 @@ public:
     void writeVertices(VideoPtr buffer, const std::vector<Vertex>& vertices);
     void writeTexture(const std::vector<VideoPtr>& buffer, 
             const std::unordered_set<Image *>& images);
+
+    void setPath(const string& path) {
+        mShaderManager.setPath(path);
+    }
+
 private:
+    VideoPtr mProgramId, mMVPPtr, mLightPosPtr, mLightRotPtr, mEyePosPtr;
     ShaderManager mShaderManager;
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;

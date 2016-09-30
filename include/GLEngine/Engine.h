@@ -5,17 +5,21 @@
 #include <GLEngine/Scene.h>
 #include <GLEngine/Renderer.h>
 #include <GLEngine/MaterialManager.h>
+#include <GLEngine/Camera.h>
 
 namespace GLEngine
 {
 
 class Engine {
 public:
-    Engine() : mRenderer(nullptr), mCurScene(nullptr), mResManager(this) {
+    Engine(const string& dataPath ) : mRenderer(nullptr), mCurScene(nullptr), 
+                                      mResManager(this) {
         mRenderer = new Renderer();
 
+        setDataPath(dataPath);
         // TODO: hardcoded, right?
-        mRenderer->init(1024, 768, "GLEngine test", 4); 
+        if(!mRenderer->init(1024, 768, "GLEngine test", 4))
+            throw "Cannot start renderer";
     }
 
     virtual ~Engine() {
@@ -27,17 +31,37 @@ public:
             return;
 
         if(mCurScene != nullptr) {
-            // mScene->setEngine(nullptr);
+            mCurScene->shutDown();
         }
 
         mCurScene = scene; 
-        // mScene->setEngine(this);
+        mCurScene->setUp(mRenderer);
     }
 
     void run() {
-        //while(mRenderer->isRunning()) {
-            
-        //}
+        if(mCurScene == nullptr)
+            return; 
+
+        LookAtCamera *c = new LookAtCamera(75.0f, 4.0f/3.0f);
+        float cnt = 0.0f;
+        while(mRenderer->isRunning()) {
+            //c->setCameraPos(glm::vec3(20,10,20));
+            c->setCameraPos(glm::vec3(20 * sin(-cnt/2.0f),10,20 * cos(-cnt/2.0f)));
+            c->setTargetPos(glm::vec3(0,2,0));
+            c->setUpVector(glm::vec3(0,1,0));
+            //mCurScene->setLightRot(glm::vec3(sin(cnt),cos(cnt),0));
+            mCurScene->setLightRot(glm::vec3(0,1,0));
+            //mCurScene->setLightPos(glm::vec3(20 * sin(cnt), 20 * cos(cnt), 0));
+            mCurScene->setLightPos(glm::vec3(0,0,1));
+            c->update();
+
+            mRenderer->prepareFrame();
+            mCurScene->render(c);
+            mRenderer->endFrame();
+
+            cnt += 0.01f;
+        }
+        delete c;
     }
 
     ResourceManager& getResourceManager() {
@@ -54,6 +78,7 @@ public:
             return;
         } 
         
+        mRenderer->setPath(path);
         mResManager.setPath(path);
     }
 private:
