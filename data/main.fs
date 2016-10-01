@@ -9,6 +9,8 @@ uniform sampler2D uTexture;
 uniform vec3 uLightPos, uLightRot;
 uniform vec3 uEyePos;
 
+// TODO: questo e` per le directional. 
+//       aggiungere un mega switch con i vari light model
 void main() {
     vec4 t = texture(uTexture, UV).rgba;
     vec3 nNormal = normalize(NORMAL);

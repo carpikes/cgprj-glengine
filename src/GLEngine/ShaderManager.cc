@@ -32,7 +32,7 @@ void ShaderManager::freeShaders(std::vector<GLuint>& shaders) {
 
 GLuint ShaderManager::linkShaders(std::vector<GLuint>& shaders) {
     GLint result = GL_FALSE;
-    int infoLogLen;
+    int infoLogLen = 0;
     GLuint programId = 0;
 
     LOG("Linking"); 
@@ -47,6 +47,7 @@ GLuint ShaderManager::linkShaders(std::vector<GLuint>& shaders) {
         std::vector<char> errMsg(infoLogLen+1);
         glGetShaderInfoLog(programId, infoLogLen, NULL, &errMsg[0]);
         ERRP("Linking error: %s", &errMsg[0]);
+        assert(false);
     }
 
     return programId;
@@ -57,6 +58,9 @@ bool ShaderManager::compileShaders(const std::vector<ShaderElement>& el,
     if(out.size() > 0)
         freeShaders(out);
     out.clear();
+
+    if(el.size() == 0)
+        return false;
 
     for(const ShaderElement& e : el) {
         std::string src;
@@ -76,7 +80,7 @@ bool ShaderManager::compileShaders(const std::vector<ShaderElement>& el,
         }
 
         GLint result = GL_FALSE;
-        int infoLogLen;
+        int infoLogLen = 0;
 
         GLuint id = glCreateShader(type);
         out.push_back(id);
@@ -89,7 +93,7 @@ bool ShaderManager::compileShaders(const std::vector<ShaderElement>& el,
 
         glGetShaderiv(id, GL_COMPILE_STATUS, &result);
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &infoLogLen);
-        if(infoLogLen > 0) {
+        if(result == GL_FALSE || infoLogLen > 0) {
             std::vector<char> errMsg(infoLogLen+1);
             glGetShaderInfoLog(id, infoLogLen, NULL, &errMsg[0]);
             ERRP("Compiler error: %s", &errMsg[0]);

@@ -22,8 +22,12 @@ bool Scene::setUp(Renderer *renderer) {
 
     // move meshes & textures to videocard 
     size_t numberOfBuffers = 0;
-    for(const ObjectPtr o : mObjects)
-        numberOfBuffers += o->getMesh()->getParts().size();
+    for(const ObjectPtr o : mObjects) {
+        if(o->getMesh()->getEngineTag() == 0) {
+            numberOfBuffers += o->getMesh()->getParts().size();
+            o->getMesh()->setEngineTag(1);
+        }
+    }
 
     mVideoPtrs.clear();
     mVideoPtrs.resize(numberOfBuffers, InvalidVideoPtr);
@@ -35,18 +39,20 @@ bool Scene::setUp(Renderer *renderer) {
     }
     // TODO allocate faces buffer
 
-    assert(mVideoPtrs.size() >= mObjects.size());
-
     size_t i = 0;
     for(ObjectPtr o : mObjects) {
         MeshPtr m = o->getMesh();
-        for(MeshPart& mp : m->getParts()) {
-            renderer->writeVertices(mVideoPtrs[i], mp.vertices());
-            mp.setVideoPtr(mVideoPtrs[i]);
-            //renderer->writeFaces(mVideoPtrs[i], mp->faces());
-            i++;
+        if(m->getEngineTag() == 1) {
+            for(MeshPart& mp : m->getParts()) {
+                if(mp.videoPtr() == InvalidVideoPtr) {
+                    renderer->writeVertices(mVideoPtrs[i], mp.vertices());
+                    mp.setVideoPtr(mVideoPtrs[i]);
+                    i++;
+                }
+                //renderer->writeFaces(mVideoPtrs[i], mp->faces());
+            }
+            m->setEngineTag(2);
         }
-
     }
 
     // e qua le texture
@@ -87,6 +93,10 @@ bool Scene::render(LookAtCamera *camera) {
     for(ObjectPtr o : mObjects) {
         MeshPtr m = o->getMesh();
         glm::mat4 vpMat = camera->getVPMatrix();
+
+        //glm::quat orient = o->getOrientation();
+        //orient = glm::rotate(orient, 0.01f, glm::vec3(0,1,0));
+        //o->setOrientation(orient);
         glm::mat4 mvpMat = vpMat * o->getModelMatrix();
 
         mRenderer->setMVP(mvpMat);

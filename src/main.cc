@@ -14,9 +14,11 @@ int main(int argc, char *argv[]) {
     Engine glEngine("../data");
 
     MeshPtr pikachu(glEngine.getResourceManager().get<Mesh>("pikachu.obj"));
-    if(pikachu)
-        LOG("Pikachu loaded ok");
-    else 
+    if(!pikachu)
+        return 0;
+
+    MeshPtr pav(glEngine.getResourceManager().get<Mesh>("pav.obj"));
+    if(!pav)
         return 0;
 
     Scene sc(&glEngine);
@@ -29,6 +31,8 @@ int main(int argc, char *argv[]) {
         pika->setOrientation(glm::angleAxis(i / 6.28f, glm::vec3(0.f,1.f,0.f)));
         sc.addObject(pika);
     }
+    ObjectPtr pPav = std::make_shared<Object>(pav);
+    sc.addObject(pPav);
 
     glEngine.setScene(&sc);
     glEngine.run();
