@@ -93,7 +93,7 @@ bool ShaderManager::compileShaders(const std::vector<ShaderElement>& el,
 
         glGetShaderiv(id, GL_COMPILE_STATUS, &result);
         glGetShaderiv(id, GL_INFO_LOG_LENGTH, &infoLogLen);
-        if(result == GL_FALSE || infoLogLen > 0) {
+        if(infoLogLen > 0) {
             std::vector<char> errMsg(infoLogLen+1);
             glGetShaderInfoLog(id, infoLogLen, NULL, &errMsg[0]);
             ERRP("Compiler error: %s", &errMsg[0]);
