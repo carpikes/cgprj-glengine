@@ -71,14 +71,13 @@ public:
     
     // TODO ottimizzare sta cosa
     glm::mat4 getModelMatrix() {
-        if(mCacheInvalidate) {
-            glm::mat4 scaling = glm::scale(glm::mat4(1.0f), mScaling);
-            glm::mat4 rotate = glm::mat4_cast(mOrientation);
-            glm::mat4 translate = glm::translate(glm::mat4(1.0f), mPosition);
-            mCachedModelMatrix = translate * rotate * scaling;
-            mCacheInvalidate = false;
-        }
+        updateCache();
         return mCachedModelMatrix;
+    }
+
+    glm::mat3 getNormalMatrix() {
+        updateCache();
+        return mCachedRotationMatrix;
     }
 
     MeshPtr getMesh() { return mMesh; }
@@ -88,6 +87,18 @@ private:
     glm::quat mOrientation;
     bool mCacheInvalidate;
     glm::mat4 mCachedModelMatrix;
+    glm::mat3 mCachedRotationMatrix;
+
+    inline void updateCache() {
+        if(mCacheInvalidate) {
+            glm::mat4 scaling = glm::scale(glm::mat4(1.0f), mScaling);
+            glm::mat4 rotate = glm::mat4_cast(mOrientation);
+            glm::mat4 translate = glm::translate(glm::mat4(1.0f), mPosition);
+            mCachedModelMatrix = translate * rotate * scaling;
+            mCachedRotationMatrix = glm::mat3_cast(mOrientation); // TODO derivarla da rotate
+            mCacheInvalidate = false;
+        }
+    }
 };
 
 typedef std::shared_ptr<Object> ObjectPtr;

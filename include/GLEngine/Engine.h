@@ -38,30 +38,8 @@ public:
         mCurScene->setUp(mRenderer);
     }
 
-    void run() {
-        if(mCurScene == nullptr)
-            return; 
-
-        LookAtCamera *c = new LookAtCamera(75.0f, 4.0f/3.0f);
-        float cnt = 0.0f;
-        while(mRenderer->isRunning()) {
-            //c->setCameraPos(glm::vec3(20,10,20));
-            c->setCameraPos(glm::vec3(20 * sin(-cnt/2.0f),10,20 * cos(-cnt/2.0f)));
-            c->setTargetPos(glm::vec3(0,2,0));
-            c->setUpVector(glm::vec3(0,1,0));
-            //mCurScene->setLightRot(glm::vec3(sin(cnt),cos(cnt),0));
-            mCurScene->setLightRot(glm::vec3(0,1,0));
-            //mCurScene->setLightPos(glm::vec3(20 * sin(cnt), 20 * cos(cnt), 0));
-            mCurScene->setLightPos(glm::vec3(0,0,1));
-            c->update();
-
-            mRenderer->prepareFrame();
-            mCurScene->render(c);
-            mRenderer->endFrame();
-
-            cnt += 0.01f;
-        }
-        delete c;
+    Renderer* getRenderer() {
+        return mRenderer;
     }
 
     ResourceManager& getResourceManager() {

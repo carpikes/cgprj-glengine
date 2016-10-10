@@ -14,6 +14,7 @@ void* ResourceManager::_load(const string& name) {
     string ext = Utils::getExtension(name);
 
     string rname = mPath + "/" + name;
+    LOGP("Loading resource %s", rname.c_str());
     if(!ext.compare("obj")) 
         res = loadObj(name, mPath);
     else if(!ext.compare("png"))
@@ -31,7 +32,9 @@ void* ResourceManager::_load(const string& name) {
 void* ResourceManager::_get(const string& name) {
     auto r = mResources.find(name);
 
+    DEBP("Requesting texture %s", name.c_str());
     if( r == mResources.end()) {
+        DEBP("Loading texture %s", name.c_str());
         void *ptr = _load(name);
         if(ptr == nullptr) {
             ERRP("Asking invalid resource %s", name.c_str());

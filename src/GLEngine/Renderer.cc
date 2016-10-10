@@ -3,6 +3,16 @@
 namespace GLEngine
 {
 
+void sKeyCallback(GLFWwindow *w, int key, int scancode, int action, int mods) {
+    Renderer *renderer = (Renderer *)glfwGetWindowUserPointer(w);
+    renderer->onKeyPress(key, scancode, action, mods);
+}
+
+void sMouseCallback(GLFWwindow *w, double xpos, double ypos) {
+    Renderer *renderer = (Renderer *)glfwGetWindowUserPointer(w);
+    renderer->onMouseMove(xpos, ypos);
+}
+
 /* Reference:   http://www.opengl-tutorial.org/beginners-tutorials/
  *              tutorial-1-opening-a-window/
  */
@@ -43,7 +53,11 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     glGenVertexArrays(1, &VertexArrayID);
     glBindVertexArray(VertexArrayID);
 
+    glfwSetWindowUserPointer(mWindow, this);
     glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE); 
+    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+    glfwSetKeyCallback(mWindow, sKeyCallback);
+    glfwSetCursorPosCallback(mWindow, sMouseCallback);
 
     mProgramId = mShaderManager.load( {
         { ShaderType::VERTEX_SHADER, "main.vs" },
@@ -58,9 +72,13 @@ bool Renderer::init(size_t width, size_t height, const string& title,
 
     glUseProgram(mProgramId);
     mMVPPtr = glGetUniformLocation(mProgramId, "MVP");
+    mNormalMatrixPtr = glGetUniformLocation(mProgramId, "normalMatrix");
     mLightPosPtr = glGetUniformLocation(mProgramId, "uLightPos");
     mLightRotPtr = glGetUniformLocation(mProgramId, "uLightRot");
     mEyePosPtr = glGetUniformLocation(mProgramId, "uEyePos");
+
+    assert(mMVPPtr != GL_INVALID_VALUE);
+    assert(mNormalMatrixPtr != GL_INVALID_VALUE);
 
     return true;
 }
@@ -77,10 +95,15 @@ void Renderer::prepareFrame() {
 void Renderer::endFrame() {
     glfwSwapBuffers(mWindow);
     glfwPollEvents();
+    usleep(20000);
 }
 
 void Renderer::setMVP(const glm::mat4& mvp) {
     glUniformMatrix4fv(mMVPPtr, 1, GL_FALSE, &mvp[0][0]);
+}
+
+void Renderer::setNormalMatrix(const glm::mat3& normal) {
+    glUniformMatrix3fv(mNormalMatrixPtr, 1, GL_FALSE, &normal[0][0]);
 }
 
 void Renderer::setLightPos(const glm::vec3& light) {
@@ -113,7 +136,7 @@ bool Renderer::allocateTextureBuffers(size_t number, std::vector<VideoPtr>& out)
 }
 
 void Renderer::writeVertices(VideoPtr buffer, const std::vector<Vertex>& vertices) {
-    LOGP("Writing %u vertices to videocard", vertices.size());
+    //LOGP("Writing %u vertices to videocard", vertices.size());
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, 
             (vertices.size()) * sizeof(Vertex), 
@@ -147,5 +170,15 @@ void Renderer::writeTexture(const std::vector<VideoPtr>& buffer,
         bufpos++;
     }
 }
-    
+
+void Renderer::onKeyPress(int key, int scancode, int action, int mods) {
+    for(InputHandler *i : mInputHandlers)
+        i->handleKeyPress(key, scancode, action, mods);
+}
+
+void Renderer::onMouseMove(double xpos, double ypos) {
+    for(InputHandler *i : mInputHandlers)
+        i->handleMouseMove(xpos, ypos);
+}
+
 } /* GLEngine */ 

@@ -8,6 +8,7 @@ namespace GLEngine {
 using std::string;
 
 class Utils {
+    TAG_DEF("Utils")
     public:
     static string getExtension(const string& name) {
         string::size_type pos = name.rfind(".");
@@ -32,6 +33,23 @@ class Utils {
         buf << fp.rdbuf();
         out = buf.str();
         return true;
+    }
+
+    static string getPath(const string& name) {
+        LOGP("Requesting path of %s", name.c_str());
+        string::size_type pos = name.rfind("/");
+        if(pos == string::npos)
+            throw "Invalid path";
+        string path = name.substr(0, pos);
+        LOGP("Path is %s", path.c_str());
+        return path;
+    }
+
+    static void cleanFileName(string& name) {
+        string::size_type p;
+        while((p = name.find("\\")) != string::npos) {
+            name[p] = '/';
+        }
     }
 private:
     Utils();

@@ -6,6 +6,7 @@
 #include <GLEngine/Utils.h>
 #include <GLEngine/ResourceManager.h>
 #include <GLEngine/ShaderManager.h>
+#include <GLEngine/InputHandler.h>
 
 namespace GLEngine
 {
@@ -25,9 +26,13 @@ public:
     void run();
 
     void setMVP(const glm::mat4& mvp);
+    void setNormalMatrix(const glm::mat3& normal);
     void setLightPos(const glm::vec3& light);
     void setLightRot(const glm::vec3& light);
     void setEyePos(const glm::vec3& eye);
+
+    void onKeyPress(int key, int scancode, int action, int mods);
+    void onMouseMove(double xpos, double ypos);
 
     bool allocateVertexBuffers(size_t number, std::vector<VideoPtr>& out);
     bool allocateTextureBuffers(size_t number, std::vector<VideoPtr>& out);
@@ -40,12 +45,18 @@ public:
         mShaderManager.setPath(path);
     }
 
+    void registerInputHandler(InputHandler *in) {
+        mInputHandlers.push_back(in); 
+    }
+
 private:
-    VideoPtr mProgramId, mMVPPtr, mLightPosPtr, mLightRotPtr, mEyePosPtr;
+    VideoPtr mProgramId, mLightPosPtr, mLightRotPtr, mEyePosPtr;
+    VideoPtr mMVPPtr, mNormalMatrixPtr;
     ShaderManager mShaderManager;
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;
     uint32_t mAASamples;
+    std::vector<InputHandler *> mInputHandlers;
 };
 
 } /* GLEngine */ 

@@ -54,6 +54,9 @@ bool PNGFileFormat::readImage(const std::vector<char>& data, Image& out) {
         case PNG_COLOR_TYPE_RGB:
             out.mFormat = GL_RGB;
             break;
+        /*case PNG_COLOR_TYPE_PALETTE:
+            out.mFormat = GL_RGB;
+            break; */
         case PNG_COLOR_TYPE_RGB_ALPHA:
             out.mFormat = GL_RGBA;
             break;

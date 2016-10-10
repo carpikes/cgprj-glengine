@@ -2,40 +2,49 @@
 #define GLENGINE_CAMERA_H
 
 #include <GLEngine/Common.h>
+#include <GLEngine/InputHandler.h>
 
 namespace GLEngine
 {
 
 class Camera {
 public: 
-    const glm::mat4 getVPMatrix() const {
-        return mProjMatrix * mViewMatrix;
-    }
+    const glm::mat4 getVPMatrix() const;
+    void setCameraPos(const glm::vec3& pos) { mCameraPos = pos; }
+    glm::vec3 getCameraPos() { return mCameraPos; }
 protected:
     glm::mat4 mViewMatrix, mProjMatrix;
-    
+    glm::vec3 mCameraPos;
 };
 
 class LookAtCamera : public Camera {
+    TAG_DEF("LookAtCamera");
 public:
-    LookAtCamera(float fov, float screenRatio) : 
-                mCameraPos(0,0,10), mTargetPos(0,0,0), mUpVector(0,1,0) {
-        mProjMatrix = glm::perspective(glm::radians(fov), screenRatio, 0.01f,
-                                       1000.0f);
-        update();
-    }
+    LookAtCamera(float fov, float screenRatio);
 
-    void setCameraPos(const glm::vec3& pos) { mCameraPos = pos; }
     void setTargetPos(const glm::vec3& pos) { mTargetPos = pos; }
     void setUpVector(const glm::vec3& pos) { mUpVector = pos; }
 
-    glm::vec3 getCameraPos() { return mCameraPos; }
+    void update();
+protected:
+    glm::vec3 mTargetPos, mUpVector;
+};
 
-    void update() {
-        mViewMatrix = glm::lookAt(mCameraPos, mTargetPos, mUpVector);
-    }
+class FirstPersonCamera : public Camera, public InputHandler {
+    TAG_DEF("FirstPersonCamera");
+public:
+    FirstPersonCamera(float fov, float screenRatio);
+
+    void update();
+
+    void handleKeyPress(int key, int scancode, int action, int mods);
+    void handleMouseMove(double xpos, double ypos);
+
 private:
-    glm::vec3 mCameraPos, mTargetPos, mUpVector;
+    float mBeta, mGamma, mAlpha;
+    double mLastMouseX, mLastMouseY;
+    glm::vec4 mDelta;
+    bool mFirstTime;
 };
     
 } /* GLEngine */ 

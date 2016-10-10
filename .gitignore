@@ -10,3 +10,4 @@ build/*
 *.d
 *.exe
 .*.pyc
+data/poke

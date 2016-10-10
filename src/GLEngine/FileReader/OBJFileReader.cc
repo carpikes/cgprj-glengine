@@ -233,8 +233,10 @@ bool OBJFileReader::handleSetMaterialLib(FILE *fp, OBJFileReader *obj) {
         return false;
 
     obj->mCurMatlibName = name;
-    MTLFileReader mtl(obj->mEngine, obj->mPath);
-    mtl.load(name);
+    MTLFileReader mtl(obj->mEngine, Utils::getPath(obj->mPath + "/" + obj->mFileName));
+    Utils::cleanFileName(obj->mCurMatlibName);
+    if(!mtl.load(obj->mCurMatlibName))
+        return false;
     return true;
 }
 
@@ -296,11 +298,15 @@ bool OBJFileReader::process(MeshPart &out) {
 
         Vertex vx;
         vx.vertex = mVertices[vertex-1];
-        if(normal > 0) vx.normal = mNormals[normal-1];
-        if(uv > 0) vx.uv = mUv[uv-1];
+        if(normal > 0)
+            vx.normal = glm::normalize(mNormals[normal-1]);
+        else
+            ERRP("Wat? %s", this->mMaterialName.c_str());
+
+        if(uv > 0) 
+            vx.uv = mUv[uv-1];
 
         out.vertices().push_back(vx);
-
         out.faces().push_back(i);
     }
     DEBP("Writing material name %s", this->mMaterialName.c_str());

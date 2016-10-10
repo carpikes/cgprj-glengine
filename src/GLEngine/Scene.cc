@@ -62,7 +62,8 @@ bool Scene::setUp(Renderer *renderer) {
     for(const ObjectPtr o : mObjects)
         for(MeshPart& mp : o->getMesh()->getParts()) {
             MaterialPtr mat = matManager.get(mp.material());
-            mat->appendTextures(usedImages);
+            if(mat != nullptr)
+                mat->appendTextures(usedImages);
         }
 
     mTextureIds.clear();
@@ -81,7 +82,7 @@ bool Scene::shutDown() {
     return true;
 }
 
-bool Scene::render(LookAtCamera *camera) {
+bool Scene::render(Camera *camera) {
     if(!mCanRender)
         return false;
 
@@ -98,8 +99,10 @@ bool Scene::render(LookAtCamera *camera) {
         //orient = glm::rotate(orient, 0.01f, glm::vec3(0,1,0));
         //o->setOrientation(orient);
         glm::mat4 mvpMat = vpMat * o->getModelMatrix();
+        glm::mat3 normalMatrix = glm::mat3(vpMat) * o->getNormalMatrix();
 
         mRenderer->setMVP(mvpMat);
+        mRenderer->setNormalMatrix(normalMatrix);
         // Da spostare nella mesh
         for(MeshPart& p : m->getParts()) {
             MaterialPtr mtl = mtlMgr.get(p.material());

@@ -28,7 +28,7 @@ public:
     }
 
     void setLightRot(const glm::vec3& rot) {
-        mRenderer->setLightRot(rot);
+        mRenderer->setLightRot(glm::normalize(rot));
     }
 
     /** Load all resources */
@@ -40,7 +40,7 @@ public:
     // TODO: camera? 
 
     /** Render a frame */
-    bool render(LookAtCamera *camera);
+    bool render(Camera *camera);
 private:
     Renderer *mRenderer;
     bool mCanRender;

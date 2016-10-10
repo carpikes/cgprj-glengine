@@ -12,6 +12,7 @@ const MTLFileReader::funcmap_t MTLFileReader::functions[] = {
     { "Kd",       1, MTLFileReader::handleReadVector    },
     { "Ks",       2, MTLFileReader::handleReadVector    },
     { "Tf",       3, MTLFileReader::handleReadVector    },
+    { "Ke",       3, MTLFileReader::handleNotImplemented},
 
     { "Ni",       0, MTLFileReader::handleReadFloat     },
     { "Ns",       1, MTLFileReader::handleReadFloat     },
@@ -156,16 +157,22 @@ HANDLER(ReadTexture) {
     ResourceManager& resMgr = mtl->mEngine->getResourceManager();
 
     if(mtl->mCurMaterial == NULL) return false;
-    char textureName[128] = {0};
-    int r = fscanf(fp, "%120s\n", textureName);
+    char textureName[256] = {0};
+    int r = fscanf(fp, "%250s\n", textureName);
     if(r != 1) {
         ERRP("Cannot read texture file in %s", mtl->mFileName.c_str());
+        throw "Cannot continue";
         return false;
     }
 
-    Image *img = resMgr.get<Image>(textureName);
+    std::stringstream texPath;
+    texPath << mtl->mPath << "/" << textureName;
+
+    string tPath = texPath.str();
+    Utils::cleanFileName(tPath);
+    Image *img = resMgr.get<Image>(tPath);
     if(!img) {
-        ERRP("Cannot load texture %s", textureName);
+        ERRP("Cannot load texture %s", tPath.c_str());
         return false;
     }
 

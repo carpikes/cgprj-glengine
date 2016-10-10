@@ -24,7 +24,7 @@ private:
     string mFileName;
     MaterialPtr mCurMaterial;
     Engine *mEngine;
-    const string& mPath;
+    const string mPath;
 
     typedef struct { 
         string name;
