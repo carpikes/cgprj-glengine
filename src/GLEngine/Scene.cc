@@ -93,16 +93,13 @@ bool Scene::render(Camera *camera) {
     MaterialManager& mtlMgr = mEngine->getMaterialManager();
     for(ObjectPtr o : mObjects) {
         MeshPtr m = o->getMesh();
-        glm::mat4 vpMat = camera->getVPMatrix();
+        glm::mat4 viewMat = camera->getViewMatrix();
+        glm::mat4 projMat = camera->getProjMatrix();
 
-        //glm::quat orient = o->getOrientation();
-        //orient = glm::rotate(orient, 0.01f, glm::vec3(0,1,0));
-        //o->setOrientation(orient);
-        glm::mat4 mvpMat = vpMat * o->getModelMatrix();
-        glm::mat3 normalMatrix = glm::mat3(vpMat) * o->getNormalMatrix();
+        glm::mat4 mvMat = viewMat * o->getModelMatrix();
+        glm::mat4 mvpMat = projMat * mvMat;
 
-        mRenderer->setMVP(mvpMat);
-        mRenderer->setNormalMatrix(normalMatrix);
+        mRenderer->setMatrices(mvMat, mvpMat, o->getNormalMatrix());
         // Da spostare nella mesh
         for(MeshPart& p : m->getParts()) {
             MaterialPtr mtl = mtlMgr.get(p.material());

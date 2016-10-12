@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
         //mCurScene->setLightRot(glm::vec3(sin(cnt),cos(cnt),0));
         sc.setLightRot(glm::normalize(glm::vec3(0,1,0)));
         //sc.setLightPos(glm::vec3(120 + sin(cnt*50), 50, 120 * cos(cnt*50)));
-        sc.setLightPos(glm::vec3(0, 10, 0));
+        sc.setLightPos(glm::vec3(0, 0, 20));
         //mCurScene->setLightPos(glm::normalize(glm::vec3(0,1,0)));
         c.update();
 

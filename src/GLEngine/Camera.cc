@@ -4,10 +4,6 @@ namespace GLEngine
 {
 
 
-const glm::mat4 Camera::getVPMatrix() const {
-    return mProjMatrix * mViewMatrix;
-}
-
 LookAtCamera::LookAtCamera(float fov, float screenRatio) {
     mTargetPos = glm::vec3(0,0,0);
     mUpVector = glm::vec3(0,1,0);

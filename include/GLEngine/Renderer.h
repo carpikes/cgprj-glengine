@@ -25,8 +25,9 @@ public:
     void endFrame();
     void run();
 
-    void setMVP(const glm::mat4& mvp);
-    void setNormalMatrix(const glm::mat3& normal);
+    void setMatrices(const glm::mat4& modelView, 
+                     const glm::mat4& modelViewProj,
+                     const glm::mat3& normalMat);
     void setLightPos(const glm::vec3& light);
     void setLightRot(const glm::vec3& light);
     void setEyePos(const glm::vec3& eye);
@@ -51,7 +52,7 @@ public:
 
 private:
     VideoPtr mProgramId, mLightPosPtr, mLightRotPtr, mEyePosPtr;
-    VideoPtr mMVPPtr, mNormalMatrixPtr;
+    VideoPtr mModelViewPtr, mModelViewProjPtr, mNormalMatrixPtr;
     ShaderManager mShaderManager;
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;

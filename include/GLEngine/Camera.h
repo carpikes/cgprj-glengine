@@ -9,7 +9,8 @@ namespace GLEngine
 
 class Camera {
 public: 
-    const glm::mat4 getVPMatrix() const;
+    const glm::mat4 getViewMatrix() const { return mViewMatrix; }
+    const glm::mat4 getProjMatrix() const { return mProjMatrix; }
     void setCameraPos(const glm::vec3& pos) { mCameraPos = pos; }
     glm::vec3 getCameraPos() { return mCameraPos; }
 protected:

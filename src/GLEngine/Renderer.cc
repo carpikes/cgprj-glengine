@@ -71,14 +71,12 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     glDepthFunc(GL_LESS);
 
     glUseProgram(mProgramId);
-    mMVPPtr = glGetUniformLocation(mProgramId, "MVP");
-    mNormalMatrixPtr = glGetUniformLocation(mProgramId, "normalMatrix");
+    mModelViewProjPtr = glGetUniformLocation(mProgramId, "uModelViewProj");
+    mModelViewPtr = glGetUniformLocation(mProgramId, "uModelView");
+    mNormalMatrixPtr = glGetUniformLocation(mProgramId, "uNormalMatrix");
     mLightPosPtr = glGetUniformLocation(mProgramId, "uLightPos");
     mLightRotPtr = glGetUniformLocation(mProgramId, "uLightRot");
     mEyePosPtr = glGetUniformLocation(mProgramId, "uEyePos");
-
-    assert(mMVPPtr != GL_INVALID_VALUE);
-    assert(mNormalMatrixPtr != GL_INVALID_VALUE);
 
     return true;
 }
@@ -98,12 +96,12 @@ void Renderer::endFrame() {
     usleep(20000);
 }
 
-void Renderer::setMVP(const glm::mat4& mvp) {
-    glUniformMatrix4fv(mMVPPtr, 1, GL_FALSE, &mvp[0][0]);
-}
-
-void Renderer::setNormalMatrix(const glm::mat3& normal) {
-    glUniformMatrix3fv(mNormalMatrixPtr, 1, GL_FALSE, &normal[0][0]);
+void Renderer::setMatrices(const glm::mat4& modelView, 
+                           const glm::mat4& modelViewProj,
+                           const glm::mat3& normalMat) {
+    glUniformMatrix4fv(mModelViewPtr, 1, GL_FALSE, &modelView[0][0]);
+    glUniformMatrix4fv(mModelViewProjPtr, 1, GL_FALSE, &modelViewProj[0][0]);
+    glUniformMatrix3fv(mNormalMatrixPtr, 1, GL_FALSE, &normalMat[0][0]);
 }
 
 void Renderer::setLightPos(const glm::vec3& light) {

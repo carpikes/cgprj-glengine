@@ -95,7 +95,10 @@ private:
             glm::mat4 rotate = glm::mat4_cast(mOrientation);
             glm::mat4 translate = glm::translate(glm::mat4(1.0f), mPosition);
             mCachedModelMatrix = translate * rotate * scaling;
-            mCachedRotationMatrix = glm::mat3_cast(mOrientation); // TODO derivarla da rotate
+
+            // TODO derivarla da rotate
+            mCachedRotationMatrix = 
+                glm::transpose(glm::inverse(glm::mat3_cast(mOrientation)));
             mCacheInvalidate = false;
         }
     }
