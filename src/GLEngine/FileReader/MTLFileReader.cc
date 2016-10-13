@@ -89,7 +89,8 @@ bool MTLFileReader::load(const string& name) {
     return true;
 } 
 
-HANDLER(NotImplemented) {
+HANDLER(NotImplemented) { 
+    (void) type;
     LOG("Command not implemented");
     if(mtl->mCurMaterial == NULL) return false;
     fscanf(fp, "%*[^\n]\n");
@@ -148,6 +149,7 @@ HANDLER(ReadFloat) {
 }
 
 HANDLER(ReadInteger) {
+    (void)type;
     if(mtl->mCurMaterial == NULL) return false;
     fscanf(fp, "%*[^\n]\n");
     return true;
@@ -194,6 +196,7 @@ HANDLER(ReadTexture) {
 }
 
 HANDLER(BeginMaterial) {
+    (void) type;
     MaterialManager& mtlMgr = mtl->mEngine->getMaterialManager();
     char name[32] = {0};
     if(fscanf(fp, "%32s", name) != 1)

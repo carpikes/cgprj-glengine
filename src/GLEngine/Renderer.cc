@@ -78,7 +78,31 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     mLightRotPtr = glGetUniformLocation(mProgramId, "uLightRot");
     mEyePosPtr = glGetUniformLocation(mProgramId, "uEyePos");
 
+    for(int i=0;i<8;i++) {
+        mLights[i].position = glGetUniformLocation(mProgramId, 
+            Utils::getUniformName("pointLights", i, "position").c_str());
+        mLights[i].attenuation = glGetUniformLocation(mProgramId, 
+            Utils::getUniformName("pointLights", i, "attenuation").c_str());
+        mLights[i].ambient = glGetUniformLocation(mProgramId, 
+            Utils::getUniformName("pointLights", i, "ambient").c_str());
+        mLights[i].diffuse = glGetUniformLocation(mProgramId, 
+            Utils::getUniformName("pointLights", i, "diffuse").c_str());
+        mLights[i].specular = glGetUniformLocation(mProgramId, 
+            Utils::getUniformName("pointLights", i, "specular").c_str());
+    }
+    
     return true;
+}
+
+void Renderer::setPointLight(size_t i, glm::vec3 position, 
+                             glm::vec3 atten, glm::vec3 ambient,
+                             glm::vec3 diffuse, glm::vec3 specular) {
+    assert(i < 8);
+    glUniform3f(mLights[i].position, position.x, position.y, position.z);
+    glUniform3f(mLights[i].attenuation, atten.x, atten.y, atten.z);
+    glUniform3f(mLights[i].ambient, ambient.x, ambient.y, ambient.z);
+    glUniform3f(mLights[i].diffuse, diffuse.x, diffuse.y, diffuse.z);
+    glUniform3f(mLights[i].specular, specular.x, specular.y, specular.z);
 }
 
 bool Renderer::isRunning() {
@@ -102,10 +126,6 @@ void Renderer::setMatrices(const glm::mat4& modelView,
     glUniformMatrix4fv(mModelViewPtr, 1, GL_FALSE, &modelView[0][0]);
     glUniformMatrix4fv(mModelViewProjPtr, 1, GL_FALSE, &modelViewProj[0][0]);
     glUniformMatrix3fv(mNormalMatrixPtr, 1, GL_FALSE, &normalMat[0][0]);
-}
-
-void Renderer::setLightPos(const glm::vec3& light) {
-    glUniform3f(mLightPosPtr, light.x, light.y, light.z);
 }
 
 void Renderer::setLightRot(const glm::vec3& light) {
@@ -137,7 +157,7 @@ void Renderer::writeVertices(VideoPtr buffer, const std::vector<Vertex>& vertice
     //LOGP("Writing %u vertices to videocard", vertices.size());
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, 
-            (vertices.size()) * sizeof(Vertex), 
+            vertices.size() * sizeof(Vertex) + 4, 
             &vertices[0], GL_STATIC_DRAW); // mmh..static..
 }
 

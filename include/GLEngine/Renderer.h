@@ -28,9 +28,11 @@ public:
     void setMatrices(const glm::mat4& modelView, 
                      const glm::mat4& modelViewProj,
                      const glm::mat3& normalMat);
-    void setLightPos(const glm::vec3& light);
     void setLightRot(const glm::vec3& light);
     void setEyePos(const glm::vec3& eye);
+    void setPointLight(size_t i, glm::vec3 position, glm::vec3 atten,
+                                 glm::vec3 ambient, glm::vec3 diffuse,
+                                 glm::vec3 specular);
 
     void onKeyPress(int key, int scancode, int action, int mods);
     void onMouseMove(double xpos, double ypos);
@@ -58,6 +60,10 @@ private:
     size_t mWidth, mHeight;
     uint32_t mAASamples;
     std::vector<InputHandler *> mInputHandlers;
+
+    struct PointLightPtr {
+        VideoPtr position, attenuation, ambient, diffuse, specular;
+    } mLights[8];
 };
 
 } /* GLEngine */ 

@@ -93,21 +93,26 @@ bool Scene::render(Camera *camera) {
     MaterialManager& mtlMgr = mEngine->getMaterialManager();
     for(ObjectPtr o : mObjects) {
         MeshPtr m = o->getMesh();
+        if(m == nullptr)
+            continue;
         glm::mat4 viewMat = camera->getViewMatrix();
         glm::mat4 projMat = camera->getProjMatrix();
 
-        glm::mat4 mvMat = viewMat * o->getModelMatrix();
-        glm::mat4 mvpMat = projMat * mvMat;
+        glm::mat4 mvMat = o->getModelMatrix();
+        glm::mat4 mvpMat = projMat * viewMat * mvMat;
 
         mRenderer->setMatrices(mvMat, mvpMat, o->getNormalMatrix());
         // Da spostare nella mesh
         for(MeshPart& p : m->getParts()) {
             MaterialPtr mtl = mtlMgr.get(p.material());
+            if(mtl == nullptr)
+                continue;
+
             VideoPtr ptr = p.videoPtr();
 
             glBindBuffer(GL_ARRAY_BUFFER, ptr);
             for(int i=0;i<3;i++)
-            glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       (void *) (i * sizeof(glm::vec3)));
 
             if(mtl->mDiffuseTexture && mtl->mDiffuseTexture->img)

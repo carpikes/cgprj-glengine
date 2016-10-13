@@ -23,10 +23,6 @@ public:
         return true;
     }
 
-    void setLightPos(const glm::vec3& pos) {
-        mRenderer->setLightPos(pos);
-    }
-
     void setLightRot(const glm::vec3& rot) {
         mRenderer->setLightRot(glm::normalize(rot));
     }

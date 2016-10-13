@@ -51,6 +51,13 @@ class Utils {
             name[p] = '/';
         }
     }
+
+    static std::string getUniformName(const string& arrName, size_t pos, 
+                                      const string& varName) {
+        std::stringstream ss;
+        ss << arrName << "[" << pos << "]." << varName;
+        return ss.str();
+    }
 private:
     Utils();
 

@@ -10,11 +10,13 @@ uniform mat3 uNormalMatrix;
 out vec2 UV;
 out vec3 NORMAL;
 out vec3 WORLDPOS;
+out vec3 WWPOS;
 
 void main() {
     UV = vertexUV;
     NORMAL = normalize(uNormalMatrix * vertexNormal);
     WORLDPOS = vec3(uModelView * vec4(vpMs,1));
+    WWPOS = vpMs;
 
     gl_Position = uModelViewProj * vec4(vpMs,1);
 }

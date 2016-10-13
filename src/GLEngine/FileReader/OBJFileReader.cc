@@ -4,6 +4,9 @@
 
 namespace GLEngine
 {
+
+#define HANDLER(x) \
+bool OBJFileReader::handle##x(FILE *fp, OBJFileReader *obj)
     
 const OBJFileReader::funcmap_t OBJFileReader::functions[] = {
     std::make_pair("v",         OBJFileReader::handleReadVertex),
@@ -89,9 +92,11 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
             }
             cleanIndices();
             mFlushObject = false;
-            mMaterialName = mNewMaterialName;
+            LOGP("%lu vertices have mat name '%s'", obj.vertices().size(),
+                    mMaterialName.c_str());
             out.getParts().push_back(obj);
             obj = MeshPart();
+            mMaterialName = mNewMaterialName;
         }
     }
 
@@ -107,7 +112,7 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
     return true;
 } 
 
-bool OBJFileReader::handleReadVertex(FILE *fp, OBJFileReader *obj) {
+HANDLER(ReadVertex) {
     glm::vec3 vertex;
     int r = fscanf(fp, "%f %f %f\n", 
                     &vertex.x, &vertex.y, &vertex.z);
@@ -120,7 +125,7 @@ bool OBJFileReader::handleReadVertex(FILE *fp, OBJFileReader *obj) {
     return true;
 }
 
-bool OBJFileReader::handleReadUV(FILE *fp, OBJFileReader *obj) { 
+HANDLER(ReadUV) { 
     glm::vec2 vertex;
     int r = fscanf(fp, "%f %f\n", 
                     &vertex.x, &vertex.y);
@@ -133,7 +138,7 @@ bool OBJFileReader::handleReadUV(FILE *fp, OBJFileReader *obj) {
     return true;
 }
 
-bool OBJFileReader::handleReadNormal(FILE *fp, OBJFileReader *obj) { 
+HANDLER(ReadNormal) { 
     glm::vec3 vertex;
     int r = fscanf(fp, "%f %f %f\n", 
                     &vertex.x, &vertex.y, &vertex.z);
@@ -174,7 +179,7 @@ bool OBJFileReader::readTriplet(const char *s, int32_t out[3]) {
     return true;
 }
 
-bool OBJFileReader::handleReadFace(FILE *fp, OBJFileReader *obj) {
+HANDLER(ReadFace) {
     int32_t vIdx[3], uvIdx[3], nIdx[3];
 
     for(int j=0;j<3;j++) {
@@ -227,7 +232,7 @@ bool OBJFileReader::handleReadFace(FILE *fp, OBJFileReader *obj) {
     return true;
 }
 
-bool OBJFileReader::handleSetMaterialLib(FILE *fp, OBJFileReader *obj) {
+HANDLER(SetMaterialLib) {
     char name[32] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
@@ -240,7 +245,7 @@ bool OBJFileReader::handleSetMaterialLib(FILE *fp, OBJFileReader *obj) {
     return true;
 }
 
-bool OBJFileReader::handleUseMaterial(FILE *fp, OBJFileReader *obj) {
+HANDLER(UseMaterial) {
     char name[32] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
@@ -257,17 +262,19 @@ bool OBJFileReader::handleUseMaterial(FILE *fp, OBJFileReader *obj) {
     return true;
 }
 
-bool OBJFileReader::handleSetShading(FILE *fp, OBJFileReader *obj) {
+HANDLER(SetShading) {
+    (void) obj;
     fscanf(fp, "%*s");
     return true;
 }
 
-bool OBJFileReader::handleSkipLine(FILE *fp, OBJFileReader *obj) {
+HANDLER(SkipLine) {
+    (void) obj;
     fscanf(fp, "%*[^\n]\n");
     return true;
 }
 
-bool OBJFileReader::handleChangeGroup(FILE *fp, OBJFileReader *obj) {
+HANDLER(ChangeGroup) {
     char name[32] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
@@ -280,6 +287,8 @@ bool OBJFileReader::handleChangeGroup(FILE *fp, OBJFileReader *obj) {
 bool OBJFileReader::process(MeshPart &out) {
     //assert(mVertexIdx.size() == mUvIdx.size());
     //assert(mVertexIdx.size() == mNormalIdx.size());
+    if(mVertexIdx.size() == 0)
+        return true;
 
     DEBP("Vertices: %u, Vertex IDX: %u", mVertices.size(), mVertexIdx.size());
     for(size_t i = 0; i < mVertexIdx.size(); i++) {
@@ -305,13 +314,26 @@ bool OBJFileReader::process(MeshPart &out) {
 
         if(uv > 0) 
             vx.uv = mUv[uv-1];
+        else
+            ERR("UV WAT?");
 
         out.vertices().push_back(vx);
+
+        /*
+        LOGP("Vertex %d: (%f,%f,%f) N(%f,%f,%f) UV(%f,%f)", vertex,
+                vx.vertex.x, vx.vertex.y, vx.vertex.z,
+                vx.normal.x, vx.normal.y, vx.normal.z,
+                vx.uv.x, vx.uv.y);
+        */
+
         out.faces().push_back(i);
     }
+
     DEBP("Writing material name %s", this->mMaterialName.c_str());
     out.setMaterial(this->mMaterialName);
     return true;
 }
+
+#undef HANDLER
 
 } /* GLEngine */ 
