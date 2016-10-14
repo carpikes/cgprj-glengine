@@ -41,7 +41,12 @@ void FirstPersonCamera::update() {
     m = glm::rotate(m, mAlpha, glm::vec3(1,0,0));
     m = glm::rotate(m, mBeta, glm::vec3(0,1,0));
 
-    mCameraPos += glm::vec3(mDelta * m);
+    mCameraSpeed *= 0.85f;
+    mCameraSpeed += (mDelta * m) / 3.0f;
+    mCameraSpeed.x = std::min(10.0f, std::max(mCameraSpeed.x, -10.0f));
+    mCameraSpeed.y = std::min(10.0f, std::max(mCameraSpeed.y, -10.0f));
+    mCameraSpeed.z = std::min(10.0f, std::max(mCameraSpeed.z, -10.0f));
+    mCameraPos += glm::vec3(mCameraSpeed);
 
     mViewMatrix = m * m1;
 }

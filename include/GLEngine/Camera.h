@@ -44,7 +44,7 @@ public:
 private:
     float mBeta, mGamma, mAlpha;
     double mLastMouseX, mLastMouseY;
-    glm::vec4 mDelta;
+    glm::vec4 mDelta, mCameraSpeed;
     bool mFirstTime;
 };
     
