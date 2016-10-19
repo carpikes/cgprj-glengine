@@ -39,7 +39,7 @@ struct Material {
         for(Texture *t : arr)
             if(t != nullptr && t->img != nullptr)
                 out.insert(t->img);
-    }  
+    }
 };
 
 typedef std::shared_ptr<Material> MaterialPtr;

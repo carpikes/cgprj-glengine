@@ -98,8 +98,8 @@ bool Scene::render(Camera *camera) {
         glm::mat4 viewMat = camera->getViewMatrix();
         glm::mat4 projMat = camera->getProjMatrix();
 
-        glm::mat4 mvMat = o->getModelMatrix();
-        glm::mat4 mvpMat = projMat * viewMat * mvMat;
+        glm::mat4 mvMat = viewMat * o->getModelMatrix();
+        glm::mat4 mvpMat = projMat * mvMat;
 
         mRenderer->setMatrices(mvMat, mvpMat, o->getNormalMatrix());
         // Da spostare nella mesh
@@ -115,10 +115,8 @@ bool Scene::render(Camera *camera) {
                 glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       (void *) (i * sizeof(glm::vec3)));
 
-            if(mtl->mDiffuseTexture && mtl->mDiffuseTexture->img)
-                glBindTexture(GL_TEXTURE_2D, 
-                              mtl->mDiffuseTexture->img->videoPtr());
-            
+            mRenderer->setMaterialParams(&*mtl);
+
             glDrawArrays(GL_TRIANGLES, 0, p.vertices().size());
         } 
     }

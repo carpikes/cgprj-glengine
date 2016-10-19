@@ -1,57 +1,60 @@
 #version 330 core
 
 struct Material {
-    vec4 ambient;
-    vec4 diffuse;
-    vec4 specular;
-    float shininess;
+    // TODO: emissiveColor + (emissiveTexture?)
+    vec3 ambientColor, diffuseColor;
+    float specularExponent;
+    sampler2D ambientTexture, diffuseTexture, specularTexture;
+    sampler2D bumpTexture, displacementTexture;
+    uint flags;
 };
 
 struct PointLight {
     vec3 attenuation; // (constant,linear,quadratic)
     vec3 position;
-
     vec3 ambient;
     vec3 diffuse;
     vec3 specular;
 };
 
+struct AmbientLight {
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
+    vec3 strength;
+};
+
 in vec2 UV;
 in vec3 NORMAL;
 in vec3 WORLDPOS;
-in vec3 WWPOS;
 out vec4 oColor;
 
 uniform vec3 halfVector; // (fra camera e luce)
 
-uniform sampler2D uTexture;
-uniform vec3 uEyePos;
-uniform vec3 uLightPos;
-uniform vec3 uLightRot;
-uniform Material uMaterial;
-
 #define NR_POINT_LIGHTS 8
 uniform PointLight pointLights[NR_POINT_LIGHTS];
+uniform Material material;
+uniform AmbientLight ambientLight;
+uniform vec3 uEyePos;
 
 vec3 addDirectionalLight(vec4 t, vec3 normal, vec3 eyePos) {
-    vec3 lightPos = normalize(- uLightRot);
+    vec3 lightPos = normalize(- ambientLight.direction);
     vec3 rVector = reflect(lightPos, normal);
 
-    float shininess = 30.0f;
     float diffuse = max(0.0f, dot(normal, lightPos));
     float specular = max(0.0f, dot(rVector, eyePos));
     if(diffuse == 0.0f)
         specular = 0.0f;
 
-    specular = pow(specular, shininess);
-    vec3 uAmbientColor = vec3(1,1,1) * 0.1f;
-    vec3 uLightColor = vec3(1,1,1) * 0.8;
-    vec3 uStrength = vec3(1,1,1);
+    specular = pow(specular, material.specularExponent);
+    vec3 ambientColor = ambientLight.ambient;
+    vec3 lightColor = ambientLight.diffuse;
+    vec3 strength = ambientLight.strength;
 
-    vec3 scatteredLight = uAmbientColor + uLightColor * diffuse;
-    vec3 reflectedLight = uLightColor * specular * uStrength;
+    vec3 scatteredLight = ambientColor + lightColor * diffuse;
+    vec3 reflectedLight = lightColor * specular * strength;
 
-    return t.rgb * scatteredLight * 0.3 + reflectedLight;
+    return vec3(t) * scatteredLight + reflectedLight;
 }
 
 // http://learnopengl.com/#!Lighting/Multiple-lights
@@ -78,15 +81,15 @@ vec3 addPointLight(vec4 t, PointLight light, vec3 normal, vec3 fragPos, vec3 vie
 }
 
 void main() {
-    vec3 color;
+    vec3 color = vec3(0,0,0);
 
-    vec4 t = texture(uTexture, UV).rgba;
+    vec4 t = texture(material.diffuseTexture, UV).rgba;
     vec3 eyePos = normalize(uEyePos - WORLDPOS);
 
-    //color += addDirectionalLight(t, normalize(NORMAL), eyePos);
+    color += addDirectionalLight(t, normalize(NORMAL), eyePos);
 
-    for(int i=0;i<NR_POINT_LIGHTS;i++)
-        color += addPointLight(t, pointLights[i], NORMAL, WORLDPOS, eyePos);
+    //for(int i=0;i<NR_POINT_LIGHTS;i++)
+    //    color += addPointLight(t, pointLights[i], NORMAL, WORLDPOS, eyePos);
 
     oColor = vec4(color, t.a);
 }

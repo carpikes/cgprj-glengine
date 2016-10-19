@@ -23,10 +23,6 @@ public:
         return true;
     }
 
-    void setLightRot(const glm::vec3& rot) {
-        mRenderer->setLightRot(glm::normalize(rot));
-    }
-
     /** Load all resources */
     bool setUp(Renderer *renderer);
 

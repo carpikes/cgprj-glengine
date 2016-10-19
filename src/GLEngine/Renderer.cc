@@ -71,12 +71,34 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     glDepthFunc(GL_LESS);
 
     glUseProgram(mProgramId);
-    mModelViewProjPtr = glGetUniformLocation(mProgramId, "uModelViewProj");
-    mModelViewPtr = glGetUniformLocation(mProgramId, "uModelView");
-    mNormalMatrixPtr = glGetUniformLocation(mProgramId, "uNormalMatrix");
-    mLightPosPtr = glGetUniformLocation(mProgramId, "uLightPos");
-    mLightRotPtr = glGetUniformLocation(mProgramId, "uLightRot");
-    mEyePosPtr = glGetUniformLocation(mProgramId, "uEyePos");
+
+    MaterialPtr &m = mMaterialPtr;
+    AmbientLightPtr &l = mAmbientLightPtr;
+
+    struct { VideoPtr *ptr; const char *name; } uniforms[] = {
+        { &mModelViewProjPtr,       "uModelViewProj"                },
+        { &mModelViewPtr,           "uModelView"                    },
+        { &mNormalMatrixPtr,        "uNormalMatrix"                 },
+        { &mEyePosPtr,              "uEyePos"                       },
+
+        { &m.flags,                 "material.flags"                },
+        { &m.ambientColor,          "material.ambientColor"         },
+        { &m.diffuseColor,          "material.diffuseColor"         },
+        { &m.ambientTexture,        "material.ambientTexture"       },
+        { &m.diffuseTexture,        "material.diffuseTexture"       },
+        { &m.specularTexture,       "material.specularTexture"      },
+        { &m.specularExponent,      "material.specularExponent"     },
+        { &m.bumpTexture,           "material.bumpTexture"          },
+        { &m.displacementTexture,   "material.displacementTexture"  },
+
+        { &l.direction,             "ambientLight.direction"        },
+        { &l.ambient,               "ambientLight.ambient"          },
+        { &l.diffuse,               "ambientLight.diffuse"          },
+        { &l.strength,              "ambientLight.strength"         },
+    };
+
+    for(size_t i = 0; i < sizeof(uniforms) / sizeof(uniforms[0]); i++)
+        *uniforms[i].ptr = glGetUniformLocation(mProgramId, uniforms[i].name);
 
     for(int i=0;i<8;i++) {
         mLights[i].position = glGetUniformLocation(mProgramId, 
@@ -90,6 +112,7 @@ bool Renderer::init(size_t width, size_t height, const string& title,
         mLights[i].specular = glGetUniformLocation(mProgramId, 
             Utils::getUniformName("pointLights", i, "specular").c_str());
     }
+
     
     return true;
 }
@@ -128,8 +151,35 @@ void Renderer::setMatrices(const glm::mat4& modelView,
     glUniformMatrix3fv(mNormalMatrixPtr, 1, GL_FALSE, &normalMat[0][0]);
 }
 
-void Renderer::setLightRot(const glm::vec3& light) {
-    glUniform3f(mLightRotPtr, light.x, light.y, light.z);
+void Renderer::setAmbientLight(const glm::vec3& direction, 
+                               const glm::vec3& ambientColor, 
+                               const glm::vec3& lightColor, 
+                               const glm::vec3& specularStrength) {
+    setVec3(mAmbientLightPtr.direction, direction);
+    setVec3(mAmbientLightPtr.ambient, ambientColor);
+    setVec3(mAmbientLightPtr.diffuse, lightColor);
+    setVec3(mAmbientLightPtr.strength, specularStrength);
+}
+
+void Renderer::setMaterialParams(const Material *mat) {
+    uint32_t flags = 0;
+
+    setVec3(mMaterialPtr.ambientColor, mat->mAmbientColor);
+    setVec3(mMaterialPtr.diffuseColor, mat->mDiffuseColor);
+    setFloat(mMaterialPtr.specularExponent, mat->mSpecularExponent);
+
+    flags |= setTexture(mMaterialPtr.ambientTexture, 
+                        mat->mAmbientTexture, AMBIENT_TEXTURE);
+    flags |= setTexture(mMaterialPtr.ambientTexture, 
+                        mat->mDiffuseTexture, DIFFUSE_TEXTURE);
+    flags |= setTexture(mMaterialPtr.specularTexture, 
+                        mat->mSpecularTexture, SPECULAR_TEXTURE);
+    flags |= setTexture(mMaterialPtr.bumpTexture, 
+                        mat->mBumpTexture, BUMP_TEXTURE);
+    flags |= setTexture(mMaterialPtr.displacementTexture,
+                        mat->mDisplacementTexture, DISPLACE_TEXTURE);
+
+    glUniform1ui(mMaterialPtr.flags, flags);
 }
 
 void Renderer::setEyePos(const glm::vec3& eye) {
