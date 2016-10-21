@@ -73,11 +73,11 @@ private:
     } mLights[8];
 
     enum eTextures {
-        AMBIENT_TEXTURE     = 1,
-        DIFFUSE_TEXTURE     = 2,
-        SPECULAR_TEXTURE    = 3,
-        BUMP_TEXTURE        = 4,
-        DISPLACE_TEXTURE    = 5,
+        AMBIENT_TEXTURE     = 0,
+        DIFFUSE_TEXTURE     = 1,
+        SPECULAR_TEXTURE    = 2,
+        BUMP_TEXTURE        = 3,
+        DISPLACE_TEXTURE    = 4,
     };
 
     struct MaterialPtr {
@@ -103,8 +103,9 @@ private:
     uint32_t setTexture(const VideoPtr ptr, const Texture* t, uint8_t pos) {
         if(t == nullptr || t->img == nullptr)
             return 0;
-        glActiveTexture(GL_TEXTURE0 + (pos-1));
-        glUniform1i(ptr, (pos-1));
+
+        glActiveTexture(GL_TEXTURE0 + pos);
+        glUniform1i(ptr, pos);
         glBindTexture(GL_TEXTURE_2D, t->img->videoPtr());
         return (1 << pos);
     }

@@ -170,7 +170,7 @@ void Renderer::setMaterialParams(const Material *mat) {
 
     flags |= setTexture(mMaterialPtr.ambientTexture, 
                         mat->mAmbientTexture, AMBIENT_TEXTURE);
-    flags |= setTexture(mMaterialPtr.ambientTexture, 
+    flags |= setTexture(mMaterialPtr.diffuseTexture, 
                         mat->mDiffuseTexture, DIFFUSE_TEXTURE);
     flags |= setTexture(mMaterialPtr.specularTexture, 
                         mat->mSpecularTexture, SPECULAR_TEXTURE);

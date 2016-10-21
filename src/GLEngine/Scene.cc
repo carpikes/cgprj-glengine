@@ -115,7 +115,7 @@ bool Scene::render(Camera *camera) {
                 glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       (void *) (i * sizeof(glm::vec3)));
 
-            mRenderer->setMaterialParams(&*mtl);
+            mRenderer->setMaterialParams(&(*mtl));
 
             glDrawArrays(GL_TRIANGLES, 0, p.vertices().size());
         } 
