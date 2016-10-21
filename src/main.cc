@@ -63,18 +63,18 @@ int main(int argc, char *argv[]) {
         renderer->setPointLight(i, glm::vec3(0,0,0), glm::vec3(0,0.3,0),
                                    glm::vec3(1,1,1), glm::vec3(1,1,1),
                                    glm::vec3(1,1,1));
+
     //c.setCameraPos(glm::vec3(80 * sin(-cnt/2.0f),20,-80 * cos(-cnt/2.0f)));
     while(renderer->isRunning()) {
         //c->setCameraPos(glm::vec3(40,20,-40));
         //sc.setLightRot(glm::vec3(sin(cnt),cos(cnt),0));
         renderer->setAmbientLight(
-            glm::vec3(0,-1,0), glm::vec3(1,1,1), 
-            glm::vec3(1,1,1),  glm::vec3(1,1,1));
+            glm::vec3(0,-1,0), glm::vec3(1,1,1) * 0.01f, 
+            glm::vec3(1,1,1) * 0.2f,  glm::vec3(1,1,1) * 0.0f);
         //sc.setLightRot(glm::normalize(glm::vec3(0,-1,0)));
         //sc.setLightPos(glm::vec3(120 + sin(cnt*50), 50, 120 * cos(cnt*50)));
         //sc.setLightPos(glm::vec3(0, 0, 20));
         //
-        /*
         static float col[][3] = {
             {0.2,0.1,1},
             {0.1,0.1,1},
@@ -103,7 +103,6 @@ int main(int argc, char *argv[]) {
                 glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.5f, 
                 glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.3f);
         }
-        */
         //mCurScene->setLightPos(glm::normalize(glm::vec3(0,1,0)));
         c.update();
 

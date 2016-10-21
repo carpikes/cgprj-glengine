@@ -58,7 +58,8 @@ vec3 addDirectionalLight(vec4 t, vec3 normal, vec3 eyePos) {
 }
 
 // http://learnopengl.com/#!Lighting/Multiple-lights
-vec3 addPointLight(vec4 t, PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir) {
+vec3 addPointLight(vec4 t, PointLight light, vec3 normal, 
+                   vec3 fragPos, vec3 viewDir) {
     vec3 lightDir = normalize(light.position - fragPos);
     // Diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
@@ -67,12 +68,14 @@ vec3 addPointLight(vec4 t, PointLight light, vec3 normal, vec3 fragPos, vec3 vie
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 1.0f);
     // Attenuation
     float distance    = length(light.position - fragPos);
-    float attenuation = 1.0f / (light.attenuation[0] + light.attenuation[1] * distance + 
-  			     light.attenuation[2] * (distance * distance));    
+    float attenuation = 1.0f / (light.attenuation[0] + 
+                                light.attenuation[1] * distance + 
+                                light.attenuation[2] * (distance * distance));
     // Combine results
     vec3 ambient  = light.ambient  * vec3(t);
     vec3 diffuse  = light.diffuse  * diff * vec3(t);
-    vec3 specular = light.specular * spec * vec3(1,1,1);
+    vec3 specular = light.diffuse * spec * light.specular;
+
     ambient  *= attenuation;
     diffuse  *= attenuation;
     specular *= attenuation;
@@ -88,8 +91,8 @@ void main() {
 
     color += addDirectionalLight(t, normalize(NORMAL), eyePos);
 
-    //for(int i=0;i<NR_POINT_LIGHTS;i++)
-    //    color += addPointLight(t, pointLights[i], NORMAL, WORLDPOS, eyePos);
+    for(int i=0;i<NR_POINT_LIGHTS;i++)
+        color += addPointLight(t, pointLights[i], NORMAL, WORLDPOS, eyePos);
 
     oColor = vec4(color, t.a);
 }

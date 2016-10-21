@@ -14,7 +14,7 @@ out vec3 WORLDPOS;
 void main() {
     UV = vertexUV;
     NORMAL = normalize(uNormalMatrix * vertexNormal);
-    WORLDPOS = vpMs;
+    WORLDPOS = vec3(uModelView * vec4(vpMs,1));
 
     gl_Position = uModelViewProj * vec4(vpMs,1);
 }
