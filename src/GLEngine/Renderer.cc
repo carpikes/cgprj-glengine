@@ -5,12 +5,14 @@ namespace GLEngine
 
 void sKeyCallback(GLFWwindow *w, int key, int scancode, int action, int mods) {
     Renderer *renderer = (Renderer *)glfwGetWindowUserPointer(w);
-    renderer->onKeyPress(key, scancode, action, mods);
+    if(renderer != nullptr)
+        renderer->onKeyPress(key, scancode, action, mods);
 }
 
 void sMouseCallback(GLFWwindow *w, double xpos, double ypos) {
     Renderer *renderer = (Renderer *)glfwGetWindowUserPointer(w);
-    renderer->onMouseMove(xpos, ypos);
+    if(renderer != nullptr)
+        renderer->onMouseMove(xpos, ypos);
 }
 
 /* Reference:   http://www.opengl-tutorial.org/beginners-tutorials/
@@ -73,59 +75,83 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     glUseProgram(mProgramId);
 
     MaterialPtr &m = mMaterialPtr;
-    AmbientLightPtr &l = mAmbientLightPtr;
 
     struct { VideoPtr *ptr; const char *name; } uniforms[] = {
         { &mModelViewProjPtr,       "uModelViewProj"                },
-        { &mModelViewPtr,           "uModelView"                    },
-        { &mNormalMatrixPtr,        "uNormalMatrix"                 },
-        { &mEyePosPtr,              "uEyePos"                       },
+        { &mModelToWorldPtr,        "uModelToWorld"                 },
+        { &mNormalMatrixPtr,        "uWS_NormalMatrix"              },
+        { &mEyePosPtr,              "uWS_EyePos"                    },
 
         { &m.flags,                 "material.flags"                },
         { &m.ambientColor,          "material.ambientColor"         },
         { &m.diffuseColor,          "material.diffuseColor"         },
         { &m.ambientTexture,        "material.ambientTexture"       },
         { &m.diffuseTexture,        "material.diffuseTexture"       },
-        { &m.specularTexture,       "material.specularTexture"      },
-        { &m.specularExponent,      "material.specularExponent"     },
-        { &m.bumpTexture,           "material.bumpTexture"          },
-        { &m.displacementTexture,   "material.displacementTexture"  },
-
-        { &l.direction,             "ambientLight.direction"        },
-        { &l.ambient,               "ambientLight.ambient"          },
-        { &l.diffuse,               "ambientLight.diffuse"          },
-        { &l.strength,              "ambientLight.strength"         },
+        //{ &m.specularTexture,       "material.specularTexture"      },
+        //{ &m.specularExponent,      "material.specularExponent"     },
+        //{ &m.bumpTexture,           "material.bumpTexture"          },
+        //{ &m.displacementTexture,   "material.displacementTexture"  },
     };
 
-    for(size_t i = 0; i < sizeof(uniforms) / sizeof(uniforms[0]); i++)
+    for(size_t i = 0; i < sizeof(uniforms) / sizeof(uniforms[0]); i++) {
         *uniforms[i].ptr = glGetUniformLocation(mProgramId, uniforms[i].name);
+        if(*uniforms[i].ptr == 0xffffffff) {
+            ERRP("Cannot obtain ptr for %s", uniforms[i].name);
+            exit(-1);
+        }
+    }
+
+#ifdef _U
+#error _U is already defined
+#endif
+
+#define _U(x) do { \
+    mLights[i].x = glGetUniformLocation(mProgramId, \
+    Utils::getUniformName("lights", i, #x).c_str()); \
+    if(mLights[i].x == 0xffffffff) { \
+        ERRP("Cannot obtain ptr for %s", Utils::getUniformName("lights", i, #x).c_str()); \
+        exit(-1); \
+    } \
+} while(0)
 
     for(int i=0;i<8;i++) {
-        mLights[i].position = glGetUniformLocation(mProgramId, 
-            Utils::getUniformName("pointLights", i, "position").c_str());
-        mLights[i].attenuation = glGetUniformLocation(mProgramId, 
-            Utils::getUniformName("pointLights", i, "attenuation").c_str());
-        mLights[i].ambient = glGetUniformLocation(mProgramId, 
-            Utils::getUniformName("pointLights", i, "ambient").c_str());
-        mLights[i].diffuse = glGetUniformLocation(mProgramId, 
-            Utils::getUniformName("pointLights", i, "diffuse").c_str());
-        mLights[i].specular = glGetUniformLocation(mProgramId, 
-            Utils::getUniformName("pointLights", i, "specular").c_str());
+        _U(isEnabled); _U(isLocal); _U(isSpot);
+        _U(ambient); _U(color); _U(WS_position);
+        _U(WS_halfVector); _U(coneDirection); _U(spotCosCutoff);
+        _U(spotExponent); _U(attenuation);
     }
+#undef _U
 
     
     return true;
 }
 
-void Renderer::setPointLight(size_t i, glm::vec3 position, 
-                             glm::vec3 atten, glm::vec3 ambient,
-                             glm::vec3 diffuse, glm::vec3 specular) {
+void Renderer::setPointLight(size_t i, glm::vec3 position, glm::vec3 atten,
+                                glm::vec3 ambient, glm::vec3 diffuse) {
     assert(i < 8);
-    glUniform3f(mLights[i].position, position.x, position.y, position.z);
-    glUniform3f(mLights[i].attenuation, atten.x, atten.y, atten.z);
-    glUniform3f(mLights[i].ambient, ambient.x, ambient.y, ambient.z);
-    glUniform3f(mLights[i].diffuse, diffuse.x, diffuse.y, diffuse.z);
-    glUniform3f(mLights[i].specular, specular.x, specular.y, specular.z);
+    LightPtr &l = mLights[i];
+    setBool(l.isEnabled, true);
+    setBool(l.isLocal, true);
+    setBool(l.isSpot, false);
+    setVec3(l.WS_position, position);
+    setVec3(l.attenuation, atten);
+    setVec3(l.ambient, ambient);
+    setVec3(l.color, diffuse);
+}
+
+void Renderer::setAmbientLight(size_t i, const glm::vec3& direction, 
+                                         const glm::vec3& ambientColor, 
+                                         const glm::vec3& lightColor) {
+    // FIXME: half vector in world space
+    assert(false);
+    assert(i < 8);
+    LightPtr &l = mLights[i];
+    setBool(l.isEnabled, true);
+    setBool(l.isLocal, false);
+    setBool(l.isSpot, false);
+    setVec3(l.WS_position, -direction);
+    setVec3(l.ambient, ambientColor);
+    setVec3(l.color, lightColor);
 }
 
 bool Renderer::isRunning() {
@@ -143,22 +169,12 @@ void Renderer::endFrame() {
     usleep(20000);
 }
 
-void Renderer::setMatrices(const glm::mat4& modelView, 
+void Renderer::setMatrices(const glm::mat4& modelToWorld, 
                            const glm::mat4& modelViewProj,
                            const glm::mat3& normalMat) {
-    glUniformMatrix4fv(mModelViewPtr, 1, GL_FALSE, &modelView[0][0]);
+    glUniformMatrix4fv(mModelToWorldPtr, 1, GL_FALSE, &modelToWorld[0][0]);
     glUniformMatrix4fv(mModelViewProjPtr, 1, GL_FALSE, &modelViewProj[0][0]);
     glUniformMatrix3fv(mNormalMatrixPtr, 1, GL_FALSE, &normalMat[0][0]);
-}
-
-void Renderer::setAmbientLight(const glm::vec3& direction, 
-                               const glm::vec3& ambientColor, 
-                               const glm::vec3& lightColor, 
-                               const glm::vec3& specularStrength) {
-    setVec3(mAmbientLightPtr.direction, direction);
-    setVec3(mAmbientLightPtr.ambient, ambientColor);
-    setVec3(mAmbientLightPtr.diffuse, lightColor);
-    setVec3(mAmbientLightPtr.strength, specularStrength);
 }
 
 void Renderer::setMaterialParams(const Material *mat) {
@@ -179,9 +195,10 @@ void Renderer::setMaterialParams(const Material *mat) {
     flags |= setTexture(mMaterialPtr.displacementTexture,
                         mat->mDisplacementTexture, DISPLACE_TEXTURE);
 
-    glUniform1ui(mMaterialPtr.flags, flags);
+    glUniform1i(mMaterialPtr.flags, flags);
 }
 
+// TODO in world space!
 void Renderer::setEyePos(const glm::vec3& eye) {
     glUniform3f(mEyePosPtr, eye.x, eye.y, eye.z);
 }

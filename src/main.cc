@@ -60,21 +60,14 @@ int main(int argc, char *argv[]) {
     float cnt = 0.0f;
 
     for(int i=0;i<8;i++)
-        renderer->setPointLight(i, glm::vec3(0,0,0), glm::vec3(0,0.3,0),
-                                   glm::vec3(1,1,1), glm::vec3(1,1,1),
-                                   glm::vec3(1,1,1));
+        renderer->disableLight(i);
 
     //c.setCameraPos(glm::vec3(80 * sin(-cnt/2.0f),20,-80 * cos(-cnt/2.0f)));
     while(renderer->isRunning()) {
-        //c->setCameraPos(glm::vec3(40,20,-40));
-        //sc.setLightRot(glm::vec3(sin(cnt),cos(cnt),0));
-        renderer->setAmbientLight(
-            glm::vec3(0,-1,0), glm::vec3(1,1,1) * 0.01f, 
-            glm::vec3(1,1,1) * 0.2f,  glm::vec3(1,1,1) * 0.0f);
-        //sc.setLightRot(glm::normalize(glm::vec3(0,-1,0)));
-        //sc.setLightPos(glm::vec3(120 + sin(cnt*50), 50, 120 * cos(cnt*50)));
-        //sc.setLightPos(glm::vec3(0, 0, 20));
-        //
+        //renderer->setPointLight(0,
+        //    glm::vec3(0,20,0), glm::vec3(1,0,0), 
+        //    glm::vec3(1,1,1) * 0.2f,  glm::vec3(1,1,1) * 0.8f);
+        
         static float col[][3] = {
             {0.2,0.1,1},
             {0.1,0.1,1},
@@ -94,16 +87,13 @@ int main(int argc, char *argv[]) {
                 phase = 1.5;
             }
 
-        glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
-                          cos(cnt*phase + i/4.0*6.28) * dist,1);  // position
-        lpos = c.getViewMatrix() * lpos;
-        renderer->setPointLight(i, glm::vec3(lpos), 
-                glm::vec3(0,0.08,0.0001),  // attenuation
-                glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f, 
-                glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.5f, 
-                glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.3f);
+            glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
+                            cos(cnt*phase + i/4.0*6.28) * dist,1);
+            renderer->setPointLight(i, glm::vec3(lpos), 
+                    glm::vec3(0,0.08,0.0001),  // attenuation
+                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f, 
+                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.5f);
         }
-        //mCurScene->setLightPos(glm::normalize(glm::vec3(0,1,0)));
         c.update();
 
         renderer->prepareFrame();

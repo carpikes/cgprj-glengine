@@ -89,19 +89,21 @@ bool Scene::render(Camera *camera) {
     for(int i=0;i<3;i++)
         glEnableVertexAttribArray(i);
 
-    mRenderer->setEyePos(camera->getCameraPos());
+    glm::vec3 cameraPos = camera->getCameraPos();
+    glm::mat4 viewMat = camera->getViewMatrix();
+    glm::mat4 projMat = camera->getProjMatrix();
+
+    mRenderer->setEyePos(cameraPos);
+
     MaterialManager& mtlMgr = mEngine->getMaterialManager();
     for(ObjectPtr o : mObjects) {
         MeshPtr m = o->getMesh();
         if(m == nullptr)
             continue;
-        glm::mat4 viewMat = camera->getViewMatrix();
-        glm::mat4 projMat = camera->getProjMatrix();
-
         glm::mat4 mvMat = viewMat * o->getModelMatrix();
         glm::mat4 mvpMat = projMat * mvMat;
 
-        mRenderer->setMatrices(mvMat, mvpMat, o->getNormalMatrix());
+        mRenderer->setMatrices(o->getModelMatrix(), mvpMat, o->getNormalMatrix());
         // Da spostare nella mesh
         for(MeshPart& p : m->getParts()) {
             MaterialPtr mtl = mtlMgr.get(p.material());

@@ -25,19 +25,22 @@ public:
     void endFrame();
     void run();
 
-    void setMatrices(const glm::mat4& modelView, 
+    void setMatrices(const glm::mat4& modelToWorld, 
                      const glm::mat4& modelViewProj,
                      const glm::mat3& normalMat);
 
-    void setAmbientLight(const glm::vec3& direction, 
-                         const glm::vec3& ambientColor, 
-                         const glm::vec3& lightColor, 
-                         const glm::vec3& specularStrength);
+    void disableLight(size_t i) {
+        assert(i < 8);
+        setBool(mLights[i].isEnabled, false);
+    }
+    void setAmbientLight(size_t i, const glm::vec3& direction, 
+                                   const glm::vec3& ambientColor, 
+                                   const glm::vec3& lightColor);
+
+    void setPointLight(size_t i, glm::vec3 position, glm::vec3 atten,
+                                 glm::vec3 ambient, glm::vec3 diffuse);
 
     void setEyePos(const glm::vec3& eye);
-    void setPointLight(size_t i, glm::vec3 position, glm::vec3 atten,
-                                 glm::vec3 ambient, glm::vec3 diffuse,
-                                 glm::vec3 specular);
 
     void setMaterialParams(const Material *mat);
 
@@ -59,17 +62,24 @@ public:
         mInputHandlers.push_back(in); 
     }
 
+    void setDebugHV(glm::vec4& hv) {
+        glUniform3f(uDebugHV, hv.x, hv.y, hv.z);
+    }
+
 private:
     VideoPtr mProgramId, mLightPosPtr, mLightRotPtr, mEyePosPtr;
-    VideoPtr mModelViewPtr, mModelViewProjPtr, mNormalMatrixPtr;
+    VideoPtr mModelToWorldPtr, mModelViewProjPtr, mNormalMatrixPtr;
     ShaderManager mShaderManager;
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;
     uint32_t mAASamples;
+    VideoPtr uDebugHV;
     std::vector<InputHandler *> mInputHandlers;
 
-    struct PointLightPtr {
-        VideoPtr position, attenuation, ambient, diffuse, specular;
+    struct LightPtr {
+        VideoPtr isEnabled, isLocal, isSpot, ambient, color, WS_position;
+        VideoPtr WS_halfVector, coneDirection, spotCosCutoff, spotExponent;
+        VideoPtr attenuation;
     } mLights[8];
 
     enum eTextures {
@@ -88,9 +98,9 @@ private:
         VideoPtr flags;
     } mMaterialPtr;
 
-    struct AmbientLightPtr {
-        VideoPtr direction, ambient, diffuse, strength;
-    } mAmbientLightPtr;
+    void setBool(const VideoPtr ptr, bool b) {
+        glUniform1i(ptr, b);
+    }
 
     void setVec3(const VideoPtr ptr, const glm::vec3& v) {
         glUniform3f(ptr, v.x, v.y, v.z);
