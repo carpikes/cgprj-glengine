@@ -21,7 +21,7 @@ public:
               uint32_t aaSamples);
 
     bool isRunning();
-    void prepareFrame();
+    void prepareFrame(float timer);
     void endFrame();
     void run();
 
@@ -33,6 +33,9 @@ public:
         assert(i < 8);
         setBool(mLights[i].isEnabled, false);
     }
+
+    void setVideoTag(int tag) { glUniform1i(mVideoTagPtr, tag); }
+
     void setAmbientLight(size_t i, const glm::vec3& direction, 
                                    const glm::vec3& ambientColor, 
                                    const glm::vec3& lightColor);
@@ -62,13 +65,10 @@ public:
         mInputHandlers.push_back(in); 
     }
 
-    void setDebugHV(glm::vec4& hv) {
-        glUniform3f(uDebugHV, hv.x, hv.y, hv.z);
-    }
-
 private:
     VideoPtr mProgramId, mLightPosPtr, mLightRotPtr, mEyePosPtr;
     VideoPtr mModelToWorldPtr, mModelViewProjPtr, mNormalMatrixPtr;
+    VideoPtr mTimerPtr, mVideoTagPtr;
     ShaderManager mShaderManager;
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;

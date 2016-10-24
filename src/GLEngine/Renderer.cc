@@ -81,6 +81,8 @@ bool Renderer::init(size_t width, size_t height, const string& title,
         { &mModelToWorldPtr,        "uModelToWorld"                 },
         { &mNormalMatrixPtr,        "uWS_NormalMatrix"              },
         { &mEyePosPtr,              "uWS_EyePos"                    },
+        { &mTimerPtr,               "uTimer"                        },
+        { &mVideoTagPtr,            "uTag"                          },
 
         { &m.flags,                 "material.flags"                },
         { &m.ambientColor,          "material.ambientColor"         },
@@ -88,7 +90,7 @@ bool Renderer::init(size_t width, size_t height, const string& title,
         { &m.ambientTexture,        "material.ambientTexture"       },
         { &m.diffuseTexture,        "material.diffuseTexture"       },
         //{ &m.specularTexture,       "material.specularTexture"      },
-        //{ &m.specularExponent,      "material.specularExponent"     },
+        { &m.specularExponent,      "material.specularExponent"     },
         //{ &m.bumpTexture,           "material.bumpTexture"          },
         //{ &m.displacementTexture,   "material.displacementTexture"  },
     };
@@ -159,14 +161,14 @@ bool Renderer::isRunning() {
            !glfwWindowShouldClose(mWindow);
 }
 
-void Renderer::prepareFrame() {
+void Renderer::prepareFrame(float timer) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glUniform1f(mTimerPtr, timer);
 }
 
 void Renderer::endFrame() {
     glfwSwapBuffers(mWindow);
     glfwPollEvents();
-    usleep(20000);
 }
 
 void Renderer::setMatrices(const glm::mat4& modelToWorld, 

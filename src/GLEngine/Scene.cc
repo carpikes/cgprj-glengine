@@ -103,6 +103,7 @@ bool Scene::render(Camera *camera) {
         glm::mat4 mvMat = viewMat * o->getModelMatrix();
         glm::mat4 mvpMat = projMat * mvMat;
 
+        mRenderer->setVideoTag(o->getVideoTag());
         mRenderer->setMatrices(o->getModelMatrix(), mvpMat, o->getNormalMatrix());
         // Da spostare nella mesh
         for(MeshPart& p : m->getParts()) {

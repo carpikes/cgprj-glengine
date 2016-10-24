@@ -13,7 +13,7 @@ void* ResourceManager::_load(const string& name) {
     void *res = nullptr;
     string ext = Utils::getExtension(name);
 
-    string rname = mPath + "/" + name;
+    string rname = name;
     LOGP("Loading resource %s", rname.c_str());
     if(!ext.compare("obj")) 
         res = loadObj(name, mPath);

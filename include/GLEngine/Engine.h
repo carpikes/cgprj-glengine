@@ -18,7 +18,7 @@ public:
 
         setDataPath(dataPath);
         // TODO: hardcoded, right?
-        if(!mRenderer->init(1024, 768, "GLEngine test", 4))
+        if(!mRenderer->init(1920, 1080, "GLEngine test", 4))
             throw "Cannot start renderer";
     }
 

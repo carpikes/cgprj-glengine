@@ -109,6 +109,8 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
 
     fclose(fp);
     out.getParts().push_back(obj);
+    out.finalize();
+
     return true;
 } 
 
@@ -238,7 +240,10 @@ HANDLER(SetMaterialLib) {
         return false;
 
     obj->mCurMatlibName = name;
-    MTLFileReader mtl(obj->mEngine, Utils::getPath(obj->mPath + "/" + obj->mFileName));
+
+    std::string objPath = Utils::getPath(obj->mFileName);
+    MTLFileReader mtl(obj->mEngine, objPath);
+
     Utils::cleanFileName(obj->mCurMatlibName);
     if(!mtl.load(obj->mCurMatlibName))
         return false;

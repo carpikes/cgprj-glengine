@@ -5,6 +5,7 @@
 #include <GLEngine/Image.h>
 #include <GLEngine/Material.h>
 #include <GLEngine/Renderer.h>
+#include <GLEngine/Box.h>
 
 namespace GLEngine
 {
@@ -25,6 +26,16 @@ public:
     void setVideoPtr(VideoPtr p) { mVideoPtr = p; }
     VideoPtr videoPtr() const { return mVideoPtr; }
 
+    Box getBoundingBox() const {
+        Box b;
+
+        if(mVertices.size() == 0)
+            return b;
+
+        for(const Vertex &v : mVertices)
+            b.add(v.vertex);
+        return b;
+    }    
 private:
     vector<Vertex> mVertices;
     vector<uint16_t> mFaces;
@@ -35,21 +46,33 @@ private:
 
 class Mesh {
 public:
-    Mesh() : mEngineTag(0) {}
+    Mesh() : mEngineTag(0), mBoundingBox() {}
     vector<MeshPart>& getParts() { return mObjects; } 
-    
+
     void setEngineTag(int tag) { mEngineTag = tag; }
     int getEngineTag() const { return mEngineTag; }
+
+    // Call this when mesh is ready
+    void finalize() {
+        mBoundingBox.clear();
+        for(const MeshPart& m : mObjects) {
+            Box mb = m.getBoundingBox();
+            mBoundingBox.merge(mb);
+        }
+    }
+
+    const Box& getBoundingBox() const { return mBoundingBox; }
 private:
     vector<MeshPart> mObjects;
     int mEngineTag;
+    Box mBoundingBox;
 };
 
 typedef std::shared_ptr<Mesh> MeshPtr;
 
 class Object {
 public:
-    Object(MeshPtr mesh) : mMesh(mesh), mScaling(1.0,1.0,1.0), 
+    Object(MeshPtr mesh) : mMesh(mesh), mScaling(1.0,1.0,1.0), mTag(0),
                            mCacheInvalidate(true) {}
 
     inline void setPosition(const glm::vec3& position) { 
@@ -80,11 +103,18 @@ public:
         return mCachedRotationMatrix;
     }
 
+    void setVideoTag(int tag) {
+        mTag = tag;
+    }
+
+    int getVideoTag() const { return mTag; }
+
     MeshPtr getMesh() { return mMesh; }
 private:
     MeshPtr mMesh;
     glm::vec3 mPosition, mScaling;
     glm::quat mOrientation;
+    int mTag;
     bool mCacheInvalidate;
     glm::mat4 mCachedModelMatrix;
     glm::mat3 mCachedRotationMatrix;

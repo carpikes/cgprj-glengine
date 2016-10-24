@@ -41,20 +41,37 @@ int main(int argc, char *argv[]) {
     Scene sc(&glEngine);
 
     for(size_t i=0;i<meshes.size();i++) {
-        ObjectPtr pika = std::make_shared<Object>(meshes[i]);
-        float px = (float)((int)i % 5) * 20 - (80/2);
+        ObjectPtr poke = std::make_shared<Object>(meshes[i]);
+        float px = (float)((int)i % 5) * 23 - (80/2);
         float py = (float)((int)i / 5) * 15 - 50;
-        pika->setPosition(glm::vec3(px, 0, py));
-        pika->setOrientation(glm::angleAxis(i / 6.28f, glm::vec3(0,1,0)));
-        sc.addObject(pika);
+        { // Normalize Mesh
+            Box b = meshes[i]->getBoundingBox();
+            float dx = (b.vmax[0] - b.vmin[0]);
+            float dy = (b.vmax[1] - b.vmin[1]);
+            float dz = (b.vmax[2] - b.vmin[2]);
+            float dmax = (dx > dy) ? dx : dy;
+            dmax = (dmax > dz) ? dmax : dz;
+            float sx = 1.0f;
+            if(dmax < 5.0f)
+                sx = 10.0f / dmax;
+            if(dmax > 30.0f)
+                sx = 10.0f / dmax;
+            poke->setScaling(glm::vec3(sx, sx, sx));
+            LOGP("Mesh %u = %f", i, dmax);
+        }
+        poke->setPosition(glm::vec3(px, 0, py));
+        poke->setOrientation(glm::angleAxis(i / 6.28f, glm::vec3(0,1,0)));
+        poke->setVideoTag(1 + (int)i);
+        sc.addObject(poke);
     }
     ObjectPtr pPav = std::make_shared<Object>(pav);
+    pPav->setVideoTag(0);
     sc.addObject(pPav);
 
     glEngine.setScene(&sc);
 
     Renderer *renderer = glEngine.getRenderer();
-    FirstPersonCamera c(75.0f, 4.0f/3.0f);
+    FirstPersonCamera c(75.0f, 16.0f/9.0f);
 
     renderer->registerInputHandler(&c);
     float cnt = 0.0f;
@@ -96,11 +113,12 @@ int main(int argc, char *argv[]) {
         }
         c.update();
 
-        renderer->prepareFrame();
+        renderer->prepareFrame(cnt);
         sc.render(&c);
         renderer->endFrame();
 
-        cnt += 0.01f;
+        usleep(20000);
+        cnt += 0.042666666f;
     }
 
     return 0;

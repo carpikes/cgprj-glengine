@@ -167,15 +167,22 @@ HANDLER(ReadTexture) {
         return false;
     }
 
-    std::stringstream texPath;
+    std::stringstream texPath, texPath2;
     texPath << mtl->mPath << "/" << textureName;
+    // Pokemon models hack
+    texPath2 << mtl->mPath << "/Textures/" << textureName;
 
-    string tPath = texPath.str();
+    string tPath = texPath.str(), tPath2 = texPath2.str();
     Utils::cleanFileName(tPath);
+    Utils::cleanFileName(tPath2);
     Image *img = resMgr.get<Image>(tPath);
     if(!img) {
-        ERRP("Cannot load texture %s", tPath.c_str());
-        return false;
+    //    img = resMgr.get<Image>(tPath2);
+        if(!img) {
+            ERRP("Cannot load texture %s", tPath.c_str());
+            return false;
+        }
+        tPath = tPath2;
     }
 
     Texture *tex = new Texture(img);

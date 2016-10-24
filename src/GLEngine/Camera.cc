@@ -41,7 +41,7 @@ void FirstPersonCamera::update() {
     m = glm::rotate(m, mAlpha, glm::vec3(1,0,0));
     m = glm::rotate(m, mBeta, glm::vec3(0,1,0));
 
-    constexpr float MaxSpeed = 5.0f;
+    constexpr float MaxSpeed = 1.0f;
     mCameraSpeed *= 0.85f;
     mCameraSpeed += (mDelta * m) / 3.0f;
     mCameraSpeed.x = std::min(MaxSpeed, std::max(mCameraSpeed.x, -MaxSpeed));

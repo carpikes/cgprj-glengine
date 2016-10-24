@@ -1,5 +1,13 @@
 #version 330 core
 
+/*
+   VS_ == VertexSpace
+   MS_ == ModelSpace
+   WS_ == WorldSpace
+   CS_ == CameraSpace
+   PS_ == Projection Space
+*/
+
 #define HAS_AMBIENT_TEXTURE     (1 << 0)
 #define HAS_DIFFUSE_TEXTURE     (1 << 1)
 #define HAS_SPECULAR_TEXTURE    (1 << 2)
@@ -47,6 +55,7 @@ uniform Material material;
 uniform vec3 uWS_EyePos;
 
 vec3 lout_ambient, lout_diffuse, lout_specular;
+uniform float uTimer;
 
 // Reference: OpenGL Programming Guide 8th Edition (Pag 378)
 void computeLight() {
@@ -59,13 +68,13 @@ void computeLight() {
             continue;
 
         vec3 WS_halfVector;
-        vec3 WS_lightDirection = lights[i].WS_position;
+        vec3 VS_lightDirection = lights[i].WS_position;
         float attenuation = 1.0;
 
         if(lights[i].isLocal) {
-            WS_lightDirection -= WS_Position;
-            float lightDistance = length(WS_lightDirection);
-            WS_lightDirection /= lightDistance;
+            VS_lightDirection -= WS_Position;
+            float lightDistance = length(VS_lightDirection);
+            VS_lightDirection /= lightDistance;
 
             attenuation = 1.0 / (lights[i].attenuation[0]
                               +  lights[i].attenuation[1] * lightDistance
@@ -74,26 +83,26 @@ void computeLight() {
             
             if(lights[i].isSpot) {
                 // TODO normalize coneDirection
-                float spotCos = dot(WS_lightDirection, -lights[i].coneDirection);
+                float spotCos = dot(VS_lightDirection, -lights[i].coneDirection);
                 if(spotCos < lights[i].spotCosCutoff)
                     attenuation = 0.0;
                 else
                     attenuation *= pow(spotCos, lights[i].spotExponent);
             }
 
-            vec3 cpos = normalize(-uWS_EyePos - WS_Position);
-            WS_halfVector = normalize(WS_lightDirection + cpos);
+            vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
+            WS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
         } else {
             WS_halfVector = lights[i].WS_halfVector;
         }
 
-        float diffuse = max(0.0, dot(WS_Normal, WS_lightDirection));
+        float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
         float specular = max(0.0, dot(WS_Normal, WS_halfVector));
 
         if(diffuse < 0.01)
             specular = 0.0;
         else
-            specular = pow(specular, 30); // material.specularExponent);
+            specular = pow(specular, material.specularExponent);
 
         lout_ambient += lights[i].ambient * attenuation;
         lout_diffuse += lights[i].color * diffuse * attenuation;
@@ -114,9 +123,13 @@ vec3 computeMaterial() {
     if((material.flags & HAS_DIFFUSE_TEXTURE) > 0)
         diffuseColor = texture(material.diffuseTexture, UV).rgb; 
 
-    ret += lout_ambient * ambientColor; 
-    ret += lout_diffuse * diffuseColor;
-    ret += lout_specular;
+    float vv = 1.0f; //0.2f + 1.0f - abs(cos(uTimer * 3.1415));
+    vv = clamp(vv, 0, 1);
+    ret += lout_ambient * ambientColor * vv; 
+    ret += lout_diffuse * diffuseColor * vv;
+    ret += lout_specular * vv;
+
+//    ret = ret / (1.0f + ret);
     return ret;
 }
 
