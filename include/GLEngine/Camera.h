@@ -36,7 +36,7 @@ class FirstPersonCamera : public Camera, public InputHandler {
 public:
     FirstPersonCamera(float fov, float screenRatio);
 
-    void update();
+    void update(float dt);
 
     void handleKeyPress(int key, int scancode, int action, int mods);
     void handleMouseMove(double xpos, double ypos);

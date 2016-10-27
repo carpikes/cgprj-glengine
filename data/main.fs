@@ -56,6 +56,7 @@ uniform vec3 uWS_EyePos;
 
 vec3 lout_ambient, lout_diffuse, lout_specular;
 uniform float uTimer;
+uniform int uTag;
 
 // Reference: OpenGL Programming Guide 8th Edition (Pag 378)
 void computeLight() {
@@ -63,7 +64,7 @@ void computeLight() {
     lout_diffuse = vec3(0.0);
     lout_specular = vec3(0.0);
 
-    for(int i=0; i < NR_LIGHTS; i++) {
+    for(int i=0; i < NR_LIGHTS && i < 3; i++) {
         if(!lights[i].isEnabled)
             continue;
 
@@ -81,17 +82,23 @@ void computeLight() {
                               +  lights[i].attenuation[2] * lightDistance
                                                           * lightDistance);
             
-            if(lights[i].isSpot) {
-                // TODO normalize coneDirection
-                float spotCos = dot(VS_lightDirection, -lights[i].coneDirection);
-                if(spotCos < lights[i].spotCosCutoff)
-                    attenuation = 0.0;
-                else
-                    attenuation *= pow(spotCos, lights[i].spotExponent);
-            }
+//            if(lights[i].isSpot) {
+//                // TODO normalize coneDirection
+//                float spotCos = dot(VS_lightDirection, -lights[i].coneDirection);
+//                if(spotCos < lights[i].spotCosCutoff)
+//                    attenuation = 0.0;
+//                else
+//                    attenuation *= pow(spotCos, lights[i].spotExponent);
+//            }
 
             vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
             WS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
+//            if(abs(dot(VS_cameraPos, WS_Normal)) < 0.1) {
+//                lout_ambient = vec3(0,0,0);
+//                lout_diffuse = vec3(0,0,0);
+//                lout_specular = vec3(0,0,0);
+//                return;
+//            }
         } else {
             WS_halfVector = lights[i].WS_halfVector;
         }
@@ -110,6 +117,13 @@ void computeLight() {
     }
 }
 
+float toon(float v) {
+    v = (v + 0.1f) / 2.0f;
+    v = fract(v) - (fract(v*10.0f)/10.0f);
+    v = v * 2.0f;
+    return v;
+}
+
 vec3 computeMaterial() {
     vec3 ret = vec3(0,0,0);
     vec3 ambientColor = material.ambientColor;
@@ -123,13 +137,21 @@ vec3 computeMaterial() {
     if((material.flags & HAS_DIFFUSE_TEXTURE) > 0)
         diffuseColor = texture(material.diffuseTexture, UV).rgb; 
 
-    float vv = 1.0f; //0.2f + 1.0f - abs(cos(uTimer * 3.1415));
-    vv = clamp(vv, 0, 1);
-    ret += lout_ambient * ambientColor * vv; 
-    ret += lout_diffuse * diffuseColor * vv;
+    float vv = (diffuseColor.r + diffuseColor.g + diffuseColor.b); //0.6f + (1.0f - abs(cos(uTimer * 3.1415))) * 0.8f;
+    vv /= 3.0f;
+    vv = pow(vv, 2.0f);
+//    vv = clamp(vv, 0, 1);
+    ret += (lout_ambient) * ambientColor; 
+    ret += lout_diffuse * diffuseColor;
     ret += lout_specular * vv;
 
-//    ret = ret / (1.0f + ret);
+    float f = 1.4f;
+    ret = vec3(pow(ret.x, f), pow(ret.y, f), pow(ret.z, f));
+    ret = ret / (1.0f + ret);
+
+    // TOON 
+    //ret = vec3(toon(ret.r), toon(ret.g), toon(ret.b));
+
     return ret;
 }
 
@@ -139,6 +161,7 @@ void main() {
     vec4 t = texture(material.diffuseTexture, UV).rgba;
 
     computeLight();
+
     color += computeMaterial();
 
     oColor = vec4(color, t.a);

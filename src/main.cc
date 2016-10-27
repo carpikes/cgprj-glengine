@@ -4,6 +4,8 @@
 #include <GLEngine/Engine.h>
 #include <GLEngine/FileReader/OBJFileReader.h>
 #include <GLEngine/ResourceManager.h>
+#include <chrono>
+typedef std::chrono::high_resolution_clock Clock;
 
 using namespace GLEngine;
 using namespace std;
@@ -42,8 +44,8 @@ int main(int argc, char *argv[]) {
 
     for(size_t i=0;i<meshes.size();i++) {
         ObjectPtr poke = std::make_shared<Object>(meshes[i]);
-        float px = (float)((int)i % 5) * 23 - (80/2);
-        float py = (float)((int)i / 5) * 15 - 50;
+        float px = (float)((int)i % 7) * 25 - (130/2);
+        float py = (float)((int)i / 7) * 23 - 80;
         { // Normalize Mesh
             Box b = meshes[i]->getBoundingBox();
             float dx = (b.vmax[0] - b.vmin[0]);
@@ -54,8 +56,8 @@ int main(int argc, char *argv[]) {
             float sx = 1.0f;
             if(dmax < 5.0f)
                 sx = 10.0f / dmax;
-            if(dmax > 30.0f)
-                sx = 10.0f / dmax;
+            if(dmax > 20.0f)
+                sx = 20.0f / dmax;
             poke->setScaling(glm::vec3(sx, sx, sx));
             LOGP("Mesh %u = %f", i, dmax);
         }
@@ -71,7 +73,7 @@ int main(int argc, char *argv[]) {
     glEngine.setScene(&sc);
 
     Renderer *renderer = glEngine.getRenderer();
-    FirstPersonCamera c(75.0f, 16.0f/9.0f);
+    FirstPersonCamera c(60.0f, 16.0f/9.0f);
 
     renderer->registerInputHandler(&c);
     float cnt = 0.0f;
@@ -79,6 +81,7 @@ int main(int argc, char *argv[]) {
     for(int i=0;i<8;i++)
         renderer->disableLight(i);
 
+    auto t1 = Clock::now();
     //c.setCameraPos(glm::vec3(80 * sin(-cnt/2.0f),20,-80 * cos(-cnt/2.0f)));
     while(renderer->isRunning()) {
         //renderer->setPointLight(0,
@@ -86,17 +89,17 @@ int main(int argc, char *argv[]) {
         //    glm::vec3(1,1,1) * 0.2f,  glm::vec3(1,1,1) * 0.8f);
         
         static float col[][3] = {
-            {0.2,0.1,1},
-            {0.1,0.1,1},
-            {0.1,1,0.1},
-            {0.1,1,1},
-            {1,0.1,0.1},
-            {1,0.1,1},
-            {1,1,0},
-            {1,1,0},
+//            {0.2,0.1,1},
+            {0.3,0.3,1},
+            {0.3,1,0.3},
+//            {0.1,1,1},
+            {1,0.3,0.3},
+//            {1,0.1,1},
+//            {1,1,0},
+//            {1,1,0},
         };
 
-        for(int i=0;i<8;i++) {
+        for(int i=0;i<3;i++) {
             float dist = 30;
             float phase = 1;
             if(i < 4) {
@@ -107,18 +110,25 @@ int main(int argc, char *argv[]) {
             glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
                             cos(cnt*phase + i/4.0*6.28) * dist,1);
             renderer->setPointLight(i, glm::vec3(lpos), 
-                    glm::vec3(0,0.08,0.0001),  // attenuation
-                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f, 
-                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.5f);
+                    glm::vec3(0,0.01,0.0),  // attenuation
+                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.2f, 
+                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.8f);
         }
-        c.update();
+
+        auto t2 = Clock::now();
+        unsigned long dt = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+        t1 = t2;
+
+        c.update(dt / 1000000.0f);
+
 
         renderer->prepareFrame(cnt);
         sc.render(&c);
         renderer->endFrame();
 
-        usleep(20000);
-        cnt += 0.042666666f;
+        float ff = (60000.0f / 130.0f);
+        usleep(10000);
+        cnt += ((float)dt / 1000.0f) / (float)ff;
     }
 
     return 0;
@@ -130,20 +140,20 @@ const std::string objFiles[] = {
 "poke/004 - Charmander/Charmander.obj",
 "poke/006 - Charizard/Charizard.obj",
 "poke/006 - Charizard/P2_CharizardWP.obj",
-"poke/007 - Squirtle/Squirtle.obj",
 "poke/009 - Blastoise/Blastoise.obj",
+"poke/007 - Squirtle/Squirtle.obj",
 "poke/010 - Caterpie/Caterpie.obj",
 "poke/011 - Metapod/Transel.obj",
-"poke/012 - Butterfree/Butterfree.obj",
+//"poke/012 - Butterfree/Butterfree.obj",
 "poke/013 - Weedle/Weedle.obj",
 "poke/014 - Kakuna/Kakuna.obj",
 "poke/017 - Pidgeotto/Pidgeotto.obj",
 "poke/021 - Spearow/Spearow.obj",
+"poke/026 - Raichu/Raichu.obj",
 "poke/025 - Pikachu/P2_Pikachu.obj",
 "poke/025 - Pikachu/Pikachu.obj",
 "poke/025 - Pikachu/XY_PikachuF.obj",
 "poke/025 - Pikachu/XY_PikachuM.obj",
-"poke/026 - Raichu/Raichu.obj",
 "poke/026 - Raichu/XY_RaichuF.obj",
 "poke/026 - Raichu/XY_RaichuM.obj",
 "poke/029 - NidoranF/XY_NidoranF.obj",
@@ -190,13 +200,13 @@ const std::string objFiles[] = {
 "poke/101 - Electrode/Electrode.obj",
 "poke/104 - Cubone/DolKarakara.obj",
 "poke/104 - Cubone/XY_Cubone.obj",
-"poke/105 - Marowak/Marowak.obj",
-"poke/105 - Marowak/XY_Marowak.obj",
 "poke/106 - Hitmonlee/Hitmonlee.obj",
 "poke/107 - Hitmonchan/Hitmonchan.obj",
+"poke/105 - Marowak/Marowak.obj",
 "poke/115 - Kangaskhan/XY_KangaskhanMega.obj",
 "poke/115 - Kangaskhan/XY_Kangaskhan.obj",
 "poke/122 - Mr. Mime/Mr. Mime.obj",
+"poke/105 - Marowak/XY_Marowak.obj",
 "poke/123 - Scyther/Scyther.obj",
 "poke/125 - Electabuzz/Electabuzz.obj",
 "poke/127 - Pinsir/XY_PinsirMega.obj",
@@ -212,12 +222,12 @@ const std::string objFiles[] = {
 "poke/136 - Flareon/Flareon.obj",
 "poke/137 - Porygon/XY_Porygon.obj",
 "poke/138 - Omanyte/XY_Omanyte.obj",
-"poke/142 - Aerodactyl/Aerodactyl.obj",
-"poke/142 - Aerodactyl/XY_AerodactylMega.obj",
-"poke/142 - Aerodactyl/XY_Aerodactyl.obj",
 "poke/143 - Snorlax/Snorlax.obj",
 "poke/149 - Dragonite/Dragonite.obj",
 "poke/151 - Mew/Mew.obj",
+"poke/142 - Aerodactyl/Aerodactyl.obj",
+"poke/142 - Aerodactyl/XY_AerodactylMega.obj",
+"poke/142 - Aerodactyl/XY_Aerodactyl.obj",
 "poke/151 - Mew/XY_Mew.obj"
 };
 

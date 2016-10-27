@@ -35,6 +35,7 @@ public:
     }
 
     void setVideoTag(int tag) { glUniform1i(mVideoTagPtr, tag); }
+    void setMaxHeight(float h) { glUniform1f(mMaxHeightPtr, h); }
 
     void setAmbientLight(size_t i, const glm::vec3& direction, 
                                    const glm::vec3& ambientColor, 
@@ -73,7 +74,7 @@ private:
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;
     uint32_t mAASamples;
-    VideoPtr uDebugHV;
+    VideoPtr mMaxHeightPtr;
     std::vector<InputHandler *> mInputHandlers;
 
     struct LightPtr {

@@ -22,7 +22,7 @@ out vec3 WS_Position;
 out vec3 CS_EyeDirection;
 
 uniform vec3 uWS_EyePos;
-uniform float uTimer;
+uniform float uTimer, uMaxHeight;
 uniform int uTag;
 
 mat4 rotationMatrix(vec3 a, float angle)
@@ -47,21 +47,26 @@ void main() {
 
     vec4 rvp = vec4(MS_vertexPosition,1);
     if(uTag != 0) {
-        float c = cos(uTimer * 3.14f + uTag);
-        float uu = uTimer / 2.0f + uTag * 1.2f;
+        float c = cos(uTimer * 3.14f + sin(uTag) * 0.5f);
+        float uu = uTimer / 2.0f + uTag;
+        float h = MS_vertexPosition.y / (1.0f + uMaxHeight) / 5.0f;
         float rot = 0;
         mat4 rm = mat4(1);
         if(uTag % 2 == 0) {
-            rot += (c * MS_vertexPosition.y / 40.0f) * 3.14f + uTag;
+            rot += (c * h) * 3.14f + uTag;
         } else {
-            rvp.x += c * rvp.y / 10.0f;
-            rvp.y /= 1.1f - abs(c) * 0.1f;
+          rvp.x += c * rvp.y / 10.0f;
+          rvp.y /= 1.1f - abs(c) * 0.1f;
         }
-        if(uTag % 7 == 0)
-            rot += 3.14f / 2.0f * (int(uu) + pow(fract(uu),8));
+
+        if(uTag % 5 == 1)
+            rot += 3.14f / 2.0f * (floor(uu) + pow(fract(uu),6)) // ruota
+                + sin((c * h) * 3.14f) * 3.0f;
+
         rm = rotationMatrix(vec3(0,1,0), rot / 2.0f);
         WS_Normal = normalize(vec3(rm * vec4(WS_Normal,0)));
         rvp = rm * rvp;
+        //rvp.y += abs(c) - 0.1f;
     }
 
     WS_Position = vec3(uModelToWorld * rvp);

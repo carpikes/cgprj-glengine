@@ -82,6 +82,7 @@ bool Renderer::init(size_t width, size_t height, const string& title,
         { &mNormalMatrixPtr,        "uWS_NormalMatrix"              },
         { &mEyePosPtr,              "uWS_EyePos"                    },
         { &mTimerPtr,               "uTimer"                        },
+        { &mMaxHeightPtr,           "uMaxHeight"                    },
         { &mVideoTagPtr,            "uTag"                          },
 
         { &m.flags,                 "material.flags"                },
@@ -112,7 +113,6 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     Utils::getUniformName("lights", i, #x).c_str()); \
     if(mLights[i].x == 0xffffffff) { \
         ERRP("Cannot obtain ptr for %s", Utils::getUniformName("lights", i, #x).c_str()); \
-        exit(-1); \
     } \
 } while(0)
 
@@ -124,6 +124,7 @@ bool Renderer::init(size_t width, size_t height, const string& title,
     }
 #undef _U
 
+//    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     
     return true;
 }

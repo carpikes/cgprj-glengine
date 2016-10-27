@@ -104,6 +104,9 @@ bool Scene::render(Camera *camera) {
         glm::mat4 mvpMat = projMat * mvMat;
 
         mRenderer->setVideoTag(o->getVideoTag());
+        Box bb = m->getBoundingBox();
+        float maxHeight = std::max(bb.vmax[1], std::max(bb.vmax[0], bb.vmax[2]));
+        mRenderer->setMaxHeight(maxHeight);
         mRenderer->setMatrices(o->getModelMatrix(), mvpMat, o->getNormalMatrix());
         // Da spostare nella mesh
         for(MeshPart& p : m->getParts()) {

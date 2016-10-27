@@ -24,13 +24,18 @@ FirstPersonCamera::FirstPersonCamera(float fov, float screenRatio) {
     mBeta = mGamma = 0;
     mDelta = glm::vec4(0,0,0,1); 
     mCameraPos = glm::vec4(0,-5,0,1);
+    { // Pikachu approves
+        mCameraPos = glm::vec3(-97.224586,-11.071412,33.040764);
+        mAlpha = 0.126f;
+        mBeta = 4.67f;
+    }
     mLastMouseX = mLastMouseY = -1;
 
     mProjMatrix = glm::perspective(glm::radians(fov), screenRatio, 0.01f,
                                     1000.0f);
 }
 
-void FirstPersonCamera::update() {
+void FirstPersonCamera::update(float dt) {
     mCameraPos.y = std::min(mCameraPos.y, -5.0f);
     mAlpha = std::max(mAlpha, -3.14f/2.0f+0.1f);
     mAlpha = std::min(mAlpha, 3.14f/2.0f-0.1f);
@@ -41,13 +46,13 @@ void FirstPersonCamera::update() {
     m = glm::rotate(m, mAlpha, glm::vec3(1,0,0));
     m = glm::rotate(m, mBeta, glm::vec3(0,1,0));
 
-    constexpr float MaxSpeed = 1.0f;
-    mCameraSpeed *= 0.85f;
-    mCameraSpeed += (mDelta * m) / 3.0f;
+    constexpr float MaxSpeed = 300.0f;
+    mCameraSpeed *= 0.90f;
+    mCameraSpeed += (mDelta * m) * 500.0f * dt;
     mCameraSpeed.x = std::min(MaxSpeed, std::max(mCameraSpeed.x, -MaxSpeed));
     mCameraSpeed.y = std::min(MaxSpeed, std::max(mCameraSpeed.y, -MaxSpeed));
     mCameraSpeed.z = std::min(MaxSpeed, std::max(mCameraSpeed.z, -MaxSpeed));
-    mCameraPos += glm::vec3(mCameraSpeed);
+    mCameraPos += glm::vec3(mCameraSpeed) * dt;
 
     mViewMatrix = m * m1;
 }
@@ -70,8 +75,8 @@ void FirstPersonCamera::handleKeyPress(int key, int scancode, int action,
 
 void FirstPersonCamera::handleMouseMove(double xpos, double ypos) {
     if(mFirstTime == false) {
-        float dx = (xpos - mLastMouseX) / 1024.0f;
-        float dy = (ypos - mLastMouseY) / 768.0f;
+        float dx = (xpos - mLastMouseX) / 1920.0f;
+        float dy = (ypos - mLastMouseY) / 1080.0f;
 
         mBeta += dx * 8.0f;
         mAlpha += dy * 8.0f;
