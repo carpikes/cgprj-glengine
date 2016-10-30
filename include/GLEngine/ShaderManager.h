@@ -1,7 +1,7 @@
 #ifndef GLENGINE_SHADERMANAGER_H
 #define GLENGINE_SHADERMANAGER_H
 
-#include <GLEngine/Common.h>
+#include "Common.h"
 
 namespace GLEngine
 {

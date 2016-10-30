@@ -1,7 +1,7 @@
 #ifndef GLENGINE_BOX_H
 #define GLENGINE_BOX_H
 
-#include <GLEngine/Common.h>
+#include "Common.h"
 
 namespace GLEngine
 {

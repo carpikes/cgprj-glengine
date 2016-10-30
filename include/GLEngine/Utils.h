@@ -1,7 +1,7 @@
 #ifndef GLENGINE_UTILS_H
 #define GLENGINE_UTILS_H
 
-#include <GLEngine/Common.h>
+#include "Common.h"
 
 namespace GLEngine {
 
@@ -60,7 +60,6 @@ class Utils {
     }
 private:
     Utils();
-
 };
 
 } /* GLEngine */ 

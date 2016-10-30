@@ -1,7 +1,7 @@
 #ifndef GLENGINE_IMAGE_H
 #define GLENGINE_IMAGE_H
 
-#include <GLEngine/Common.h>
+#include "Common.h"
 
 namespace GLEngine
 {

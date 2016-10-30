@@ -1,8 +1,8 @@
 #ifndef GLENGINE_MATERIALMANAGER_H
 #define GLENGINE_MATERIALMANAGER_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/Material.h>
+#include "Common.h"
+#include "Material.h"
 
 namespace GLEngine
 {

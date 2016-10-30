@@ -1,8 +1,8 @@
 #ifndef GLENGINE_CAMERA_H
 #define GLENGINE_CAMERA_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/InputHandler.h>
+#include "Common.h"
+#include "InputHandler.h"
 
 namespace GLEngine
 {

@@ -1,10 +1,10 @@
 #ifndef GLENGINE_RESOURCEMANAGER_H
 #define GLENGINE_RESOURCEMANAGER_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/Mesh.h>
-#include <GLEngine/Material.h>
-#include <GLEngine/ImageFactory.h>
+#include "Common.h"
+#include "Mesh.h"
+#include "Material.h"
+#include "ImageFactory.h"
 
 namespace GLEngine
 {

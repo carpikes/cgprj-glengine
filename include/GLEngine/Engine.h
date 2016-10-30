@@ -1,11 +1,11 @@
 #ifndef GLENGINE_ENGINE_H
 #define GLENGINE_ENGINE_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/Scene.h>
-#include <GLEngine/Renderer.h>
-#include <GLEngine/MaterialManager.h>
-#include <GLEngine/Camera.h>
+#include "Common.h"
+#include "Scene.h"
+#include "Renderer.h"
+#include "MaterialManager.h"
+#include "Camera.h"
 
 namespace GLEngine
 {
