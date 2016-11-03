@@ -15,8 +15,6 @@ std::vector<std::string> getObjFiles();
 int main(int argc, char *argv[]) {
     LOG("Starting"); (void) argc; (void) argv;
 
-    Engine glEngine("../data");
-
     vector<MeshPtr> meshes;
     vector<string> objFiles = getObjFiles();
 
@@ -26,7 +24,7 @@ int main(int argc, char *argv[]) {
     for(string& i : objFiles) {
         if((q++) >= maxNum)
             break;
-        MeshPtr j(glEngine.getResourceManager().get<Mesh>(i));
+        MeshPtr j(sEngine.getResourceManager().get<Mesh>(i));
         if(!j) {
             ERRP("Cannot load %s", i.c_str());
             continue;
@@ -34,11 +32,11 @@ int main(int argc, char *argv[]) {
         meshes.push_back(j);
     }
 
-    MeshPtr pav(glEngine.getResourceManager().get<Mesh>("pav.obj"));
+    MeshPtr pav(sEngine.getResourceManager().get<Mesh>("pav.obj"));
     if(!pav)
         return 0;
 
-    Scene sc(&glEngine);
+    Scene sc;
 
     for(size_t i=0;i<meshes.size();i++) {
         ObjectPtr poke = std::make_shared<Object>(meshes[i]);
@@ -64,58 +62,56 @@ int main(int argc, char *argv[]) {
         poke->setVideoTag(1 + (int)i);
         sc.addObject(poke);
     }
+
     ObjectPtr pPav = std::make_shared<Object>(pav);
     pPav->setVideoTag(0);
     sc.addObject(pPav);
 
-    glEngine.setScene(&sc);
+//    sEngine.setScene(&sc);
 
-    Renderer *renderer = glEngine.getRenderer();
+    Device *device = sEngine.getDevice();
+    Renderer *renderer = new DirectRender(*device);
     FirstPersonCamera c(75.0f, 16.0f/9.0f);
 
-    renderer->registerInputHandler(&c);
+    device->registerInputHandler(&c);
     float cnt = 0.0f;
 
-    for(int i=0;i<8;i++)
-        renderer->disableLight(i);
+    //for(int i=0;i<8;i++)
+    //    renderer->disableLight(i);
 
     //c.setCameraPos(glm::vec3(80 * sin(-cnt/2.0f),20,-80 * cos(-cnt/2.0f)));
-    while(renderer->isRunning()) {
-        //renderer->setPointLight(0,
-        //    glm::vec3(0,20,0), glm::vec3(1,0,0), 
-        //    glm::vec3(1,1,1) * 0.2f,  glm::vec3(1,1,1) * 0.8f);
-        
-        static float col[][3] = {
-            {0.2,0.1,1},
-            {0.1,0.1,1},
-            {0.1,1,0.1},
-            {0.1,1,1},
-            {1,0.1,0.1},
-            {1,0.1,1},
-            {1,1,0},
-            {1,1,0},
-        };
+    while(device->isRunning()) {
+        //static float col[][3] = {
+        //    {0.2,0.1,1},
+        //    {0.1,0.1,1},
+        //    {0.1,1,0.1},
+        //    {0.1,1,1},
+        //    {1,0.1,0.1},
+        //    {1,0.1,1},
+        //    {1,1,0},
+        //    {1,1,0},
+        //};
 
-        for(int i=0;i<8;i++) {
-            float dist = 30;
-            float phase = 1;
-            if(i < 4) {
-                dist = 60;
-                phase = 1.5;
-            }
+        //for(int i=0;i<8;i++) {
+        //    float dist = 30;
+        //    float phase = 1;
+        //    if(i < 4) {
+        //        dist = 60;
+        //        phase = 1.5;
+        //    }
 
-            glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
-                            cos(cnt*phase + i/4.0*6.28) * dist,1);
-            renderer->setPointLight(i, glm::vec3(lpos), 
-                    glm::vec3(0,0.08,0.0001),  // attenuation
-                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f, 
-                    glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.5f);
-        }
+        //    glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
+        //                    cos(cnt*phase + i/4.0*6.28) * dist,1);
+        //    renderer->setPointLight(i, glm::vec3(lpos), 
+        //            glm::vec3(0,0.08,0.0001),  // attenuation
+        //            glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f, 
+        //            glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.5f);
+        //}
         c.update();
 
-        renderer->prepareFrame(cnt);
-        sc.render(&c);
-        renderer->endFrame();
+        device->beginFrame();
+        renderer->renderFrame(&c);
+        device->endFrame();
 
         usleep(20000);
         cnt += 0.042666666f;

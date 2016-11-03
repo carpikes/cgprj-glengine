@@ -1,47 +1,49 @@
 #ifndef GLENGINE_SCENE_H
 #define GLENGINE_SCENE_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/Renderer.h>
-#include <GLEngine/Camera.h>
+#include "Common.h"
+#include "Camera.h"
+#include "Light.h"
+#include "Mesh.h"
 
 namespace GLEngine
 {
 
-using std::vector;
-
 class Engine;
+class Device;
 
 class Scene {
     TAG_DEF("Scene")
 public:
-    Scene(Engine *engine) : mRenderer(nullptr), mCanRender(false), 
-        mEngine(engine) {}
+    Scene() {}
 
-    bool addObject(ObjectPtr mesh) {
+    const std::vector<ObjectPtr>& getObjects() const { return mObjects; }
+    const std::vector<PointLightPtr>& getLights() const { return mLights; }
+    const AmbientLight& getAmbientLight() const { return *mAmbientLight; }
+
+    void addObject(ObjectPtr mesh) {
         mObjects.push_back(mesh);
-        return true;
     }
 
-    /** Load all resources */
-    bool setUp(Renderer *renderer);
+    void addLight(PointLightPtr light) {
+        mLights.push_back(light); 
+    }
 
-    /* E se perdo il renderer prima di chiamare shutDown? */
-    bool shutDown();
+    void setAmbientLight(AmbientLightPtr light) {
+        mAmbientLight = light;
+    }
 
-    // TODO: camera? 
+    virtual void update() {}
 
-    /** Render a frame */
-    bool render(Camera *camera);
+    bool removeFromDevice(Device& renderer);
+    bool loadInDevice(Device& renderer);
 private:
-    Renderer *mRenderer;
-    bool mCanRender;
-    Engine *mEngine;
     std::vector<ObjectPtr> mObjects;
-    std::vector<VideoPtr> mVideoPtrs, mTextureIds;
-    glm::vec3 mLightRot;
+    std::vector<PointLightPtr> mLights;
+    AmbientLightPtr mAmbientLight;
 };
-    
+
+typedef std::shared_ptr<Scene> ScenePtr;
 } /* GLEngine */ 
 
 #endif /* ifndef GLENGINE_SCENE_H */

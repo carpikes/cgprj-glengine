@@ -1,9 +1,9 @@
 #ifndef GLENGINE_IMAGEFACTORY_H
 #define GLENGINE_IMAGEFACTORY_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/Image.h>
-#include <GLEngine/FileReader/PNGFileReader.h>
+#include "Common.h"
+#include "Image.h"
+#include "FileReader/PNGFileReader.h"
 
 namespace GLEngine
 {

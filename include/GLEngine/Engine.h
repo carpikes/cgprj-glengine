@@ -3,43 +3,23 @@
 
 #include "Common.h"
 #include "Scene.h"
-#include "Renderer.h"
+#include "Device.h"
 #include "MaterialManager.h"
+#include "ResourceManager.h"
 #include "Camera.h"
 
 namespace GLEngine
 {
 
-class Engine {
+class Engine : public Singleton<Engine> {
+    friend class Singleton<Engine>;
 public:
-    Engine(const string& dataPath ) : mRenderer(nullptr), mCurScene(nullptr), 
-                                      mResManager(this) {
-        mRenderer = new Renderer();
-
-        setDataPath(dataPath);
-        // TODO: hardcoded, right?
-        if(!mRenderer->init(1920, 1080, "GLEngine test", 4))
-            throw "Cannot start renderer";
-    }
-
     virtual ~Engine() {
-        delete mRenderer; 
+        delete mDevice; 
     }
 
-    void setScene(Scene *scene) {
-        if(scene == mCurScene)
-            return;
-
-        if(mCurScene != nullptr) {
-            mCurScene->shutDown();
-        }
-
-        mCurScene = scene; 
-        mCurScene->setUp(mRenderer);
-    }
-
-    Renderer* getRenderer() {
-        return mRenderer;
+    Device* getDevice() {
+        return mDevice;
     }
 
     ResourceManager& getResourceManager() {
@@ -50,21 +30,40 @@ public:
         return mMatManager;
     }
 
+    Shader& getDefaultShader() {
+        return mDefaultShader;
+    }
+
     void setDataPath(const string& path) {
         if(path.length() == 0) {
             setDataPath(".");
             return;
         } 
         
-        mRenderer->setPath(path);
         mResManager.setPath(path);
     }
 private:
-    Renderer *mRenderer;
+    Shader mDefaultShader;
+    Device *mDevice;
     Scene *mCurScene;
     ResourceManager mResManager;
     MaterialManager mMatManager;
+
+    Engine() : 
+        mDefaultShader("main.vs", "main.fs"),
+        mDevice(new Device()), 
+        mCurScene(nullptr), 
+        mResManager(this) 
+    {
+        // TODO: hardcoded, right?
+        setDataPath("../data");
+        if(!mDevice->init(1920, 1080, "GLEngine test", 4))
+            throw "Cannot init device.";
+    }
+
 };
+
+#define sEngine Engine::instance()
     
 } /* GLEngine */ 
 

@@ -1,11 +1,10 @@
 #ifndef GLENGINE_MESH_H
 #define GLENGINE_MESH_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/Image.h>
-#include <GLEngine/Material.h>
-#include <GLEngine/Renderer.h>
-#include <GLEngine/Box.h>
+#include "Common.h"
+#include "Image.h"
+#include "Material.h"
+#include "Box.h"
 
 namespace GLEngine
 {

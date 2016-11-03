@@ -1,12 +1,15 @@
 #ifndef GLENGINE_RENDERER_H
 #define GLENGINE_RENDERER_H
 
-#include <GLEngine/Common.h>
-#include <GLEngine/Material.h>
-#include <GLEngine/Utils.h>
-#include <GLEngine/ResourceManager.h>
-#include <GLEngine/ShaderManager.h>
-#include <GLEngine/InputHandler.h>
+#include "Common.h"
+#include "Material.h"
+#include "Utils.h"
+#include "Scene.h"
+#include "ResourceManager.h"
+#include "ShaderManager.h"
+#include "MaterialManager.h"
+#include "Device.h"
+#include "Engine.h"
 
 namespace GLEngine
 {
@@ -16,110 +19,95 @@ using std::string;
 class Renderer {
     TAG_DEF("Renderer")
 public:
+    Renderer(Device& device) : mScene(nullptr), mDevice(device) {}
 
-    bool init(size_t width, size_t height, const string& title, 
-              uint32_t aaSamples);
+    virtual bool setScene(ScenePtr scene) {
+        if(mScene != nullptr)
+            mScene->removeFromDevice(mDevice);
+        mScene = scene;
 
-    bool isRunning();
-    void prepareFrame(float timer);
-    void endFrame();
-    void run();
+        if(!mScene->loadInDevice(mDevice)) {
+            mScene->removeFromDevice(mDevice);
+            mScene = nullptr;
+            return false;
+        }
 
-    void setMatrices(const glm::mat4& modelToWorld, 
-                     const glm::mat4& modelViewProj,
-                     const glm::mat3& normalMat);
-
-    void disableLight(size_t i) {
-        assert(i < 8);
-        setBool(mLights[i].isEnabled, false);
+        return true;
     }
 
-    void setVideoTag(int tag) { glUniform1i(mVideoTagPtr, tag); }
+    // set clipping?
 
-    void setAmbientLight(size_t i, const glm::vec3& direction, 
-                                   const glm::vec3& ambientColor, 
-                                   const glm::vec3& lightColor);
+    virtual void renderFrame(Camera *camera) = 0;
+protected:
+    ScenePtr mScene;
+    Device& mDevice;
+};
 
-    void setPointLight(size_t i, glm::vec3 position, glm::vec3 atten,
-                                 glm::vec3 ambient, glm::vec3 diffuse);
+class DirectRender : public Renderer {
+    TAG_DEF("DirectRenderer")
+public:
+    DirectRender(Device& device) : Renderer(device) {}
+    virtual void renderFrame(Camera *camera) {
+        MaterialManager& mtlMgr = sEngine.getMaterialManager();
 
-    void setEyePos(const glm::vec3& eye);
+        for(int i=0;i<3;i++)
+            glEnableVertexAttribArray(i);
 
-    void setMaterialParams(const Material *mat);
+        glm::vec3 cameraPos = camera->getCameraPos();
+        glm::mat4 viewMat = camera->getViewMatrix();
+        glm::mat4 projMat = camera->getProjMatrix();
 
-    void onKeyPress(int key, int scancode, int action, int mods);
-    void onMouseMove(double xpos, double ypos);
+        Shader &shader = sEngine.getDefaultShader();
+        shader.enable();
+        shader.set("uWS_EyePos", cameraPos);
 
-    bool allocateVertexBuffers(size_t number, std::vector<VideoPtr>& out);
-    bool allocateTextureBuffers(size_t number, std::vector<VideoPtr>& out);
+        for(const ObjectPtr o : mScene->getObjects()) {
+            MeshPtr m = o->getMesh();
+            if(m == nullptr)
+                continue;
 
-    void writeVertices(VideoPtr buffer, const std::vector<Vertex>& vertices);
-    void writeTexture(const std::vector<VideoPtr>& buffer, 
-            const std::unordered_set<Image *>& images);
+            glm::mat4 mvpMat = projMat * viewMat * o->getModelMatrix();
 
-    void setPath(const string& path) {
-        mShaderManager.setPath(path);
+            shader.set("uModelToWorld", o->getModelMatrix());
+            shader.set("uModelViewProj", mvpMat);
+            shader.set("uWS_NormalMatrix", o->getNormalMatrix());
+
+            // Da spostare nella mesh
+            for(MeshPart& p : m->getParts()) {
+                MaterialPtr mtl = mtlMgr.get(p.material());
+                if(mtl == nullptr)
+                    continue;
+
+                VideoPtr ptr = p.videoPtr();
+
+                glBindBuffer(GL_ARRAY_BUFFER, ptr);
+                for(int i=0;i<3;i++)
+                    glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, 
+                                          sizeof(Vertex),
+                                          (void *) (i * sizeof(glm::vec3)));
+
+                mtl->enable(shader);
+
+                glDrawArrays(GL_TRIANGLES, 0, p.vertices().size());
+            } 
+        }
+
+        for(int i=0;i<3;i++)
+            glDisableVertexAttribArray(i);
     }
+};
 
-    void registerInputHandler(InputHandler *in) {
-        mInputHandlers.push_back(in); 
+class DeferredRenderer : public Renderer {
+    TAG_DEF("DeferredRenderer")
+public:
+
+    virtual void renderFrame(Camera *camera) {
+        (void) camera;
+    /*
+        1) attiva il MRT con i vari shader
+        2) renderizza
+     */
     }
-
-private:
-    VideoPtr mProgramId, mLightPosPtr, mLightRotPtr, mEyePosPtr;
-    VideoPtr mModelToWorldPtr, mModelViewProjPtr, mNormalMatrixPtr;
-    VideoPtr mTimerPtr, mVideoTagPtr;
-    ShaderManager mShaderManager;
-    GLFWwindow* mWindow;
-    size_t mWidth, mHeight;
-    uint32_t mAASamples;
-    VideoPtr uDebugHV;
-    std::vector<InputHandler *> mInputHandlers;
-
-    struct LightPtr {
-        VideoPtr isEnabled, isLocal, isSpot, ambient, color, WS_position;
-        VideoPtr WS_halfVector, coneDirection, spotCosCutoff, spotExponent;
-        VideoPtr attenuation;
-    } mLights[8];
-
-    enum eTextures {
-        AMBIENT_TEXTURE     = 0,
-        DIFFUSE_TEXTURE     = 1,
-        SPECULAR_TEXTURE    = 2,
-        BUMP_TEXTURE        = 3,
-        DISPLACE_TEXTURE    = 4,
-    };
-
-    struct MaterialPtr {
-        VideoPtr ambientColor, ambientTexture;
-        VideoPtr diffuseColor, diffuseTexture;
-        VideoPtr specularTexture, specularExponent;
-        VideoPtr bumpTexture, displacementTexture;
-        VideoPtr flags;
-    } mMaterialPtr;
-
-    void setBool(const VideoPtr ptr, bool b) {
-        glUniform1i(ptr, b);
-    }
-
-    void setVec3(const VideoPtr ptr, const glm::vec3& v) {
-        glUniform3f(ptr, v.x, v.y, v.z);
-    }
-
-    void setFloat(const VideoPtr ptr, const float v) {
-        glUniform1f(ptr, v);
-    }
-
-    uint32_t setTexture(const VideoPtr ptr, const Texture* t, uint8_t pos) {
-        if(t == nullptr || t->img == nullptr)
-            return 0;
-
-        glActiveTexture(GL_TEXTURE0 + pos);
-        glUniform1i(ptr, pos);
-        glBindTexture(GL_TEXTURE_2D, t->img->videoPtr());
-        return (1 << pos);
-    }
-
 };
 
 } /* GLEngine */ 

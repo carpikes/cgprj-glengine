@@ -6,20 +6,12 @@
 namespace GLEngine
 {
     
+bool Scene::removeFromDevice(Device& renderer) {
+    (void)renderer;
+    return true;
+}
 
-bool Scene::setUp(Renderer *renderer) {
-    if(mCanRender) {
-        // liberare memoria se rendererer != quello allocato
-        if(mRenderer == renderer) {
-            LOG("You are calling setUp() multiple times. Stop it!");
-            return false;
-        } // cambiato il renderer
-
-        if(mRenderer != nullptr)
-            shutDown(); 
-        mCanRender = false;
-    }
-
+bool Scene::loadInDevice(Device& device) {
     // move meshes & textures to videocard 
     size_t numberOfBuffers = 0;
     for(const ObjectPtr o : mObjects) {
@@ -29,10 +21,11 @@ bool Scene::setUp(Renderer *renderer) {
         }
     }
 
+    std::vector<VideoPtr> mVideoPtrs, mTextureIds;
     mVideoPtrs.clear();
     mVideoPtrs.resize(numberOfBuffers, InvalidVideoPtr);
 
-    if(!renderer->allocateVertexBuffers(numberOfBuffers, mVideoPtrs)) {
+    if(!device.allocVertexBuffers(numberOfBuffers, mVideoPtrs)) {
         ERRP("Cannot allocate %d vertex buffers", numberOfBuffers);
         mVideoPtrs.clear();
         return false;
@@ -45,7 +38,7 @@ bool Scene::setUp(Renderer *renderer) {
         if(m->getEngineTag() == 1) {
             for(MeshPart& mp : m->getParts()) {
                 if(mp.videoPtr() == InvalidVideoPtr) {
-                    renderer->writeVertices(mVideoPtrs[i], mp.vertices());
+                    device.writeVertices(mVideoPtrs[i], mp.vertices());
                     mp.setVideoPtr(mVideoPtrs[i]);
                     i++;
                 }
@@ -58,7 +51,7 @@ bool Scene::setUp(Renderer *renderer) {
     // e qua le texture
         
     std::unordered_set<Image *> usedImages;
-    MaterialManager& matManager = mEngine->getMaterialManager();
+    MaterialManager& matManager = sEngine.getMaterialManager();
     for(const ObjectPtr o : mObjects)
         for(MeshPart& mp : o->getMesh()->getParts()) {
             MaterialPtr mat = matManager.get(mp.material());
@@ -67,66 +60,10 @@ bool Scene::setUp(Renderer *renderer) {
         }
 
     mTextureIds.clear();
-    mRenderer->allocateTextureBuffers(usedImages.size(), mTextureIds);
-    mRenderer->writeTexture(mTextureIds, usedImages);
+    device.allocTextureBuffers(usedImages.size(), mTextureIds);
+    device.writeTexture(mTextureIds, usedImages);
     
-    mRenderer = renderer;
-    mCanRender = true;
-    return false;
-}
-
-bool Scene::shutDown() {
-    // FIXME: remove data from videocard
-    
-    mCanRender = false;
     return true;
 }
 
-bool Scene::render(Camera *camera) {
-    if(!mCanRender)
-        return false;
-
-    for(int i=0;i<3;i++)
-        glEnableVertexAttribArray(i);
-
-    glm::vec3 cameraPos = camera->getCameraPos();
-    glm::mat4 viewMat = camera->getViewMatrix();
-    glm::mat4 projMat = camera->getProjMatrix();
-
-    mRenderer->setEyePos(cameraPos);
-
-    MaterialManager& mtlMgr = mEngine->getMaterialManager();
-    for(ObjectPtr o : mObjects) {
-        MeshPtr m = o->getMesh();
-        if(m == nullptr)
-            continue;
-        glm::mat4 mvMat = viewMat * o->getModelMatrix();
-        glm::mat4 mvpMat = projMat * mvMat;
-
-        mRenderer->setVideoTag(o->getVideoTag());
-        mRenderer->setMatrices(o->getModelMatrix(), mvpMat, o->getNormalMatrix());
-        // Da spostare nella mesh
-        for(MeshPart& p : m->getParts()) {
-            MaterialPtr mtl = mtlMgr.get(p.material());
-            if(mtl == nullptr)
-                continue;
-
-            VideoPtr ptr = p.videoPtr();
-
-            glBindBuffer(GL_ARRAY_BUFFER, ptr);
-            for(int i=0;i<3;i++)
-                glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                                      (void *) (i * sizeof(glm::vec3)));
-
-            mRenderer->setMaterialParams(&(*mtl));
-
-            glDrawArrays(GL_TRIANGLES, 0, p.vertices().size());
-        } 
-    }
-
-    for(int i=0;i<3;i++)
-        glDisableVertexAttribArray(i);
-    return true;
-}
-    
 } /* GLEngine */ 
