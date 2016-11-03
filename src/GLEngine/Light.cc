@@ -4,16 +4,16 @@ namespace GLEngine
 {
 
 bool AmbientLight::enable(Shader& s) const {
-    s.set("ambientLight_enabled", true);
-    s.set("ambientLight_direction", -mDirection);
-    s.set("ambientLight_ambient", mAmbientColor);
-    s.set("ambientLight_diffuse", mDiffuseColor);
+    s.set("ambientLight.enabled", true);
+    s.set("ambientLight.direction", -mDirection);
+    s.set("ambientLight.ambient", mAmbientColor);
+    s.set("ambientLight.diffuse", mDiffuseColor);
     return true;
 }
 
 bool AmbientLight::update(Shader& s, const Camera& c) const {
     glm::vec3 halfVector = glm::normalize(c.getCameraPos()) - mDirection;
-    s.set("ambientLight_halfVector", halfVector);
+    s.set("ambientLight.halfVector", halfVector);
     return true;
 }
 
@@ -32,7 +32,7 @@ bool PointLight::enable(int n, Shader& s) const {
     s.set(Utils::getUniformName("lights", n, "WS_position"), mPosition);
     s.set(Utils::getUniformName("lights", n, "attenuation"), mAtten);
     s.set(Utils::getUniformName("lights", n, "ambient"), mAmbientColor);
-    s.set(Utils::getUniformName("lights", n, "diffuse"), mDiffuseColor);
+    s.set(Utils::getUniformName("lights", n, "color"), mDiffuseColor);
     return true;
 }
 
