@@ -4,6 +4,7 @@
 #include "Common.h"
 #include "Shader.h"
 #include "Utils.h"
+#include "Camera.h"
 
 namespace GLEngine
 {
@@ -23,14 +24,14 @@ protected:
 class AmbientLight : public Light {
     TAG_DEF("AmbientLight")
 public:
-    void setDirection(const glm::vec3& direction) { mDirection = direction; }
+    void setDirection(const glm::vec3& direction) { 
+        mDirection = glm::normalize(direction); 
+    }
     glm::vec3 getDirection() const { return mDirection; }
 
-    void setHalfVector(const glm::vec3& direction) { mHalfVector = direction; }
-    glm::vec3 getHalfVector() const { return mHalfVector; }
-
-    bool enable(Shader& s);
-    bool disable(Shader& s);
+    bool enable(Shader& s) const;
+    bool disable(Shader& s) const;
+    bool update(Shader& s, const Camera& c) const;
 private:
     glm::vec3 mDirection, mHalfVector;
 };
@@ -44,8 +45,8 @@ public:
     void setAttenuation(const glm::vec3& attenuation) { mAtten = attenuation; }
     glm::vec3 getAttenuation() const { return mAtten; }
 
-    bool enable(int n, Shader& s);
-    bool disable(int n, Shader& s);
+    bool enable(int n, Shader& s) const;
+    bool disable(int n, Shader& s) const;
 private:
     glm::vec3 mPosition, mAtten;
 };

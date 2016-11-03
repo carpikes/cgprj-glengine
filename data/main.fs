@@ -30,18 +30,23 @@ struct Material {
 };
 
 struct LightProperties {
-    bool isEnabled;
-    bool isLocal;
+    bool enabled;
     bool isSpot;
     vec3 ambient;
     vec3 color;
     vec3 WS_position;
-    vec3 WS_halfVector;
 
     vec3 coneDirection;
     float spotCosCutoff;
     float spotExponent;
     vec3 attenuation;
+};
+
+struct AmbientLight {
+    bool enabled;
+    vec3 direction;
+    vec3 ambient;
+    vec3 diffuse;
 };
 
 in vec2 UV;
@@ -51,6 +56,7 @@ in vec3 CS_EyeDirection;
 out vec4 oColor;
 
 uniform LightProperties lights[NR_LIGHTS];
+uniform AmbientLight ambientLight;
 uniform Material material;
 uniform vec3 uWS_EyePos;
 
@@ -64,37 +70,37 @@ void computeLight() {
     lout_specular = vec3(0.0);
 
     for(int i=0; i < NR_LIGHTS; i++) {
-        if(!lights[i].isEnabled)
+        if(!lights[i].enabled)
             continue;
 
         vec3 WS_halfVector;
         vec3 VS_lightDirection = lights[i].WS_position;
         float attenuation = 1.0;
 
-        if(lights[i].isLocal) {
-            VS_lightDirection -= WS_Position;
-            float lightDistance = length(VS_lightDirection);
-            VS_lightDirection /= lightDistance;
+        //if(lights[i].isLocal) {
+        VS_lightDirection -= WS_Position;
+        float lightDistance = length(VS_lightDirection);
+        VS_lightDirection /= lightDistance;
 
-            attenuation = 1.0 / (lights[i].attenuation[0]
-                              +  lights[i].attenuation[1] * lightDistance
-                              +  lights[i].attenuation[2] * lightDistance
-                                                          * lightDistance);
-            
-            if(lights[i].isSpot) {
-                // TODO normalize coneDirection
-                float spotCos = dot(VS_lightDirection, -lights[i].coneDirection);
-                if(spotCos < lights[i].spotCosCutoff)
-                    attenuation = 0.0;
-                else
-                    attenuation *= pow(spotCos, lights[i].spotExponent);
-            }
-
-            vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
-            WS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
-        } else {
-            WS_halfVector = lights[i].WS_halfVector;
+        attenuation = 1.0 / (lights[i].attenuation[0]
+                            +  lights[i].attenuation[1] * lightDistance
+                            +  lights[i].attenuation[2] * lightDistance
+                                                        * lightDistance);
+        
+        if(lights[i].isSpot) {
+            // TODO normalize coneDirection
+            float spotCos = dot(VS_lightDirection, -lights[i].coneDirection);
+            if(spotCos < lights[i].spotCosCutoff)
+                attenuation = 0.0;
+            else
+                attenuation *= pow(spotCos, lights[i].spotExponent);
         }
+
+        vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
+        WS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
+        //} else {
+        //    WS_halfVector = lights[i].WS_halfVector;
+        //}
 
         float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
         float specular = max(0.0, dot(WS_Normal, WS_halfVector));

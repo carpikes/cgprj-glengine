@@ -31,8 +31,10 @@ private:
 #define LOGP(x, ...)    sLog.print(__TAG(), x, __VA_ARGS__)
 #define ERR(x)          LOG(x)
 #define ERRP(x, ...)    LOGP(x, __VA_ARGS__)
-#define DEB(x)          LOG(x)
-#define DEBP(x, ...)    LOGP(x, __VA_ARGS__)
+//#define DEB(x)          LOG(x)
+//#define DEBP(x, ...)    LOGP(x, __VA_ARGS__)
+#define DEB(x)
+#define DEBP(x, ...)
 #define TAG_DEF(x)      static const char * __TAG() { return x; }
 
 #endif /* ifndef GLENGINE_LOG_H */

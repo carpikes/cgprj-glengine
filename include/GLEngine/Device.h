@@ -32,8 +32,6 @@ public:
     void registerInputHandler(InputHandler *in) {
         mInputHandlers.push_back(in); 
     }
-
-    static constexpr int MAX_NUMBER_OF_LIGHTS = 8;
 private:
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;

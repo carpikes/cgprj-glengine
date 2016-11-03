@@ -27,7 +27,7 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
         ERRP("Cannot load %s", name.c_str());
         return false;
     }
-    LOGP("Loading %s", name.c_str());
+    DEBP("Loading %s", name.c_str());
 
     mVertices.clear(); mNormals.clear(); mUv.clear();
     cleanIndices();
@@ -78,7 +78,7 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
 
         // per il primo usemtl
         if(mFlushObject && mVertexIdx.size() == 0) {
-            ERR("Skipping object");
+            DEB("Skipping object");
             mMaterialName = mNewMaterialName;
             mFlushObject = false;
         }
@@ -92,7 +92,7 @@ bool OBJFileReader::load(const string& name, Mesh &out) {
             }
             cleanIndices();
             mFlushObject = false;
-            LOGP("%lu vertices have mat name '%s'", obj.vertices().size(),
+            DEBP("%lu vertices have mat name '%s'", obj.vertices().size(),
                     mMaterialName.c_str());
             out.getParts().push_back(obj);
             obj = MeshPart();

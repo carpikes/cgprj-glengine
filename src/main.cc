@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     if(!pav)
         return 0;
 
-    Scene sc;
+    ScenePtr scene = std::make_shared<Scene>();
 
     for(size_t i=0;i<meshes.size();i++) {
         ObjectPtr poke = std::make_shared<Object>(meshes[i]);
@@ -60,57 +60,59 @@ int main(int argc, char *argv[]) {
         poke->setPosition(glm::vec3(px, 0, py));
         poke->setOrientation(glm::angleAxis(i / 6.28f, glm::vec3(0,1,0)));
         poke->setVideoTag(1 + (int)i);
-        sc.addObject(poke);
+        scene->addObject(poke);
     }
 
     ObjectPtr pPav = std::make_shared<Object>(pav);
     pPav->setVideoTag(0);
-    sc.addObject(pPav);
+    scene->addObject(pPav);
 
-//    sEngine.setScene(&sc);
 
     Device *device = sEngine.getDevice();
-    Renderer *renderer = new DirectRender(*device);
+    Renderer *renderer = new DirectRenderer(*device);
     FirstPersonCamera c(75.0f, 16.0f/9.0f);
 
     device->registerInputHandler(&c);
     float cnt = 0.0f;
 
+    static float col[][3] = {
+        {0.2,0.1,1},
+        {0.1,0.1,1},
+        {0.1,1,0.1},
+        {0.1,1,1},
+        {1,0.1,0.1},
+        {1,0.1,1},
+        {1,1,0},
+        {1,1,0},
+    };
+
+    for(int i=0;i<8;i++) {
+        float dist = 30;
+        float phase = 1;
+        if(i < 4) {
+            dist = 60;
+            phase = 1.5;
+        }
+
+        glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
+                        cos(cnt*phase + i/4.0*6.28) * dist,1);
+        PointLightPtr p = std::make_shared<PointLight>();
+        p->setPosition(glm::vec3(lpos));
+        p->setAttenuation(glm::vec3(0,0.08, 0.001));
+        p->setAmbientColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.3f);
+        p->setDiffuseColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.7f);
+        scene->addLight(p);
+    }
     //for(int i=0;i<8;i++)
     //    renderer->disableLight(i);
+    renderer->setScene(scene);
 
     //c.setCameraPos(glm::vec3(80 * sin(-cnt/2.0f),20,-80 * cos(-cnt/2.0f)));
     while(device->isRunning()) {
-        //static float col[][3] = {
-        //    {0.2,0.1,1},
-        //    {0.1,0.1,1},
-        //    {0.1,1,0.1},
-        //    {0.1,1,1},
-        //    {1,0.1,0.1},
-        //    {1,0.1,1},
-        //    {1,1,0},
-        //    {1,1,0},
-        //};
-
-        //for(int i=0;i<8;i++) {
-        //    float dist = 30;
-        //    float phase = 1;
-        //    if(i < 4) {
-        //        dist = 60;
-        //        phase = 1.5;
-        //    }
-
-        //    glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
-        //                    cos(cnt*phase + i/4.0*6.28) * dist,1);
-        //    renderer->setPointLight(i, glm::vec3(lpos), 
-        //            glm::vec3(0,0.08,0.0001),  // attenuation
-        //            glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f, 
-        //            glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.5f);
-        //}
         c.update();
 
         device->beginFrame();
-        renderer->renderFrame(&c);
+        renderer->renderFrame(c);
         device->endFrame();
 
         usleep(20000);

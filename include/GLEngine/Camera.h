@@ -12,7 +12,7 @@ public:
     const glm::mat4 getViewMatrix() const { return mViewMatrix; }
     const glm::mat4 getProjMatrix() const { return mProjMatrix; }
     void setCameraPos(const glm::vec3& pos) { mCameraPos = pos; }
-    glm::vec3 getCameraPos() { return mCameraPos; }
+    const glm::vec3 getCameraPos() const { return mCameraPos; }
 protected:
     glm::mat4 mViewMatrix, mProjMatrix;
     glm::vec3 mCameraPos;

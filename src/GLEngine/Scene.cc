@@ -6,8 +6,8 @@
 namespace GLEngine
 {
     
-bool Scene::removeFromDevice(Device& renderer) {
-    (void)renderer;
+bool Scene::removeFromDevice(Device& device) {
+    (void)device;
     return true;
 }
 

@@ -58,7 +58,7 @@ bool Device::init(size_t width, size_t height, const std::string& title,
 
     glfwSetWindowUserPointer(mWindow, this);
     glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE); 
-    glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
+    //glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
     glfwSetKeyCallback(mWindow, sKeyCallback);
     glfwSetCursorPosCallback(mWindow, sMouseCallback);
 

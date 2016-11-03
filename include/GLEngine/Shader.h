@@ -75,6 +75,8 @@ public:
 private:
     VideoPtr mProgramId;
 };
+
+typedef std::shared_ptr<Shader> ShaderPtr;
     
 } /* GLEngine */ 
 

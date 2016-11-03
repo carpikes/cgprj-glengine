@@ -31,7 +31,7 @@ public:
     }
 
     Shader& getDefaultShader() {
-        return mDefaultShader;
+        return *mDefaultShader;
     }
 
     void setDataPath(const string& path) {
@@ -43,15 +43,15 @@ public:
         mResManager.setPath(path);
     }
 private:
-    Shader mDefaultShader;
     Device *mDevice;
+    ShaderPtr mDefaultShader;
     Scene *mCurScene;
     ResourceManager mResManager;
     MaterialManager mMatManager;
 
     Engine() : 
-        mDefaultShader("main.vs", "main.fs"),
         mDevice(new Device()), 
+        mDefaultShader(nullptr),
         mCurScene(nullptr), 
         mResManager(this) 
     {
@@ -59,6 +59,9 @@ private:
         setDataPath("../data");
         if(!mDevice->init(1920, 1080, "GLEngine test", 4))
             throw "Cannot init device.";
+
+        mDefaultShader = std::make_shared<Shader>
+            ("../data/main.vs", "../data/main.fs");
     }
 
 };

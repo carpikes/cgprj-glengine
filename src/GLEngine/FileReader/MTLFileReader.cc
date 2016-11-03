@@ -91,7 +91,7 @@ bool MTLFileReader::load(const string& name) {
 
 HANDLER(NotImplemented) { 
     (void) type;
-    LOG("Command not implemented");
+    DEB("Command not implemented");
     if(mtl->mCurMaterial == NULL) return false;
     fscanf(fp, "%*[^\n]\n");
 
@@ -209,7 +209,7 @@ HANDLER(BeginMaterial) {
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 
-    LOGP("Parsing material %s", name);
+    DEBP("Parsing material %s", name);
     mtl->mCurMaterial = std::make_shared<Material>();
 
     const string fullName = mtlMgr.buildMaterialName(mtl->mFileName, name);

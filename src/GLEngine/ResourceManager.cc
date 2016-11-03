@@ -14,7 +14,7 @@ void* ResourceManager::_load(const string& name) {
     string ext = Utils::getExtension(name);
 
     string rname = name;
-    LOGP("Loading resource %s", rname.c_str());
+    DEBP("Loading resource %s", rname.c_str());
     if(!ext.compare("obj")) 
         res = loadObj(name, mPath);
     else if(!ext.compare("png"))
@@ -23,7 +23,7 @@ void* ResourceManager::_load(const string& name) {
         ERRP("Invalid extension for resource %s", name.c_str());
 
     if( res != nullptr) {
-        LOGP("Loaded resource %s", rname.c_str());
+        DEBP("Loaded resource %s", rname.c_str());
         mResources[name] = res;
     }
     return res;

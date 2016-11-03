@@ -15,11 +15,11 @@ class Device;
 class Scene {
     TAG_DEF("Scene")
 public:
-    Scene() {}
+    Scene() : mAmbientLight(nullptr) {}
 
     const std::vector<ObjectPtr>& getObjects() const { return mObjects; }
     const std::vector<PointLightPtr>& getLights() const { return mLights; }
-    const AmbientLight& getAmbientLight() const { return *mAmbientLight; }
+    const AmbientLightPtr getAmbientLight() const { return mAmbientLight; }
 
     void addObject(ObjectPtr mesh) {
         mObjects.push_back(mesh);
@@ -35,8 +35,8 @@ public:
 
     virtual void update() {}
 
-    bool removeFromDevice(Device& renderer);
-    bool loadInDevice(Device& renderer);
+    bool removeFromDevice(Device& device);
+    bool loadInDevice(Device& device);
 private:
     std::vector<ObjectPtr> mObjects;
     std::vector<PointLightPtr> mLights;
