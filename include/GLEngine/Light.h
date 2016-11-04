@@ -12,13 +12,20 @@ namespace GLEngine
 class Light {
     TAG_DEF("Light")
 public:
+    Light() : mEnabled(false) {}
     void setAmbientColor(const glm::vec3& ambient) { mAmbientColor = ambient; }
     glm::vec3 getAmbientColor() const { return mAmbientColor; }
         
     void setDiffuseColor(const glm::vec3& diffuse) { mDiffuseColor = diffuse; }
     glm::vec3 getDiffuseColor() const { return mDiffuseColor; }
+    
+    void enable() { mEnabled = true; }
+    void disable() { mEnabled = false; }
+
+    bool enabled() const { return mEnabled; }
 protected:
     glm::vec3 mAmbientColor, mDiffuseColor;
+    bool mEnabled;
 };
 
 class AmbientLight : public Light {
@@ -29,9 +36,7 @@ public:
     }
     glm::vec3 getDirection() const { return mDirection; }
 
-    bool enable(Shader& s) const;
-    bool disable(Shader& s) const;
-    bool update(Shader& s, const Camera& c) const;
+    bool update(Shader& s, const Camera& c, const glm::mat4& wMat);
 private:
     glm::vec3 mDirection, mHalfVector;
 };
@@ -45,8 +50,7 @@ public:
     void setAttenuation(const glm::vec3& attenuation) { mAtten = attenuation; }
     glm::vec3 getAttenuation() const { return mAtten; }
 
-    bool enable(int n, Shader& s) const;
-    bool disable(int n, Shader& s) const;
+    bool update(int n, Shader &s);
 private:
     glm::vec3 mPosition, mAtten;
 };

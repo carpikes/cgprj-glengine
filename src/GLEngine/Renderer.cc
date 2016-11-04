@@ -10,16 +10,6 @@ bool DirectRenderer::setScene(ScenePtr scene) {
     mShader = &(sEngine.getDefaultShader());
     mShader->enable();
 
-    const auto& lights = mScene->getLights();
-    int n_light = 0;
-    for(const PointLightPtr i : lights) {
-        if(n_light >= mShader->getMaxNumberOfLights()) {
-            ERR("Too many lights");
-            break;
-        }
-        i->enable(n_light++, *mShader);
-    }
-
     return true;
 }
 
@@ -38,9 +28,19 @@ void DirectRenderer::renderFrame(const Camera& camera) {
 
     mShader->set("uWS_EyePos", cameraPos);
     
-    if(mScene->getAmbientLight() != nullptr)
-        mScene->getAmbientLight()->update(*mShader, camera);
-    
+    auto& lights = mScene->getLights();
+    int n_light = 0;
+    for(const PointLightPtr i : lights) {
+        if(!i->enabled())
+            continue;
+
+        if(n_light >= mShader->getMaxNumberOfLights()) {
+            ERR("Too many lights");
+            break;
+        }
+        i->update(n_light++, *mShader);
+    }
+
     for(const ObjectPtr o : mScene->getObjects()) {
         MeshPtr mesh = o->getMesh();
         if(mesh == nullptr)
@@ -51,6 +51,11 @@ void DirectRenderer::renderFrame(const Camera& camera) {
         mShader->set("uModelToWorld", o->getModelMatrix());
         mShader->set("uModelViewProj", mvpMat);
         mShader->set("uWS_NormalMatrix", o->getNormalMatrix());
+
+        if(mScene->getAmbientLight() != nullptr)
+            mScene->getAmbientLight()->update(*mShader, camera, 
+                    o->getModelMatrix());
+
 
         // Da spostare nella mesh
         for(MeshPart& part : mesh->getParts()) {

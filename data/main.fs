@@ -47,6 +47,7 @@ struct AmbientLight {
     vec3 direction;
     vec3 ambient;
     vec3 diffuse;
+    vec3 halfVector;
 };
 
 in vec2 UV;
@@ -59,25 +60,40 @@ uniform LightProperties lights[NR_LIGHTS];
 uniform AmbientLight ambientLight;
 uniform Material material;
 uniform vec3 uWS_EyePos;
+uniform mat4 uModelToWorld;
 
 vec3 lout_ambient, lout_diffuse, lout_specular;
 uniform float uTimer;
 
-// Reference: OpenGL Programming Guide 8th Edition (Pag 378)
-void computeLight() {
-    lout_ambient = vec3(0.0);
-    lout_diffuse = vec3(0.0);
-    lout_specular = vec3(0.0);
+void computeAmbientLight() {
+    if(ambientLight.enabled == false)
+        return;
+    vec3 WS_lightDirection = vec3(uModelToWorld * vec4(ambientLight.direction, 0));
+    vec3 WS_halfVector = normalize(uWS_EyePos) + normalize(WS_lightDirection);
+    WS_halfVector = normalize(WS_halfVector);
 
+    float diffuse = max(0.0, dot(WS_Normal, ambientLight.direction));
+    float specular = max(0.0, dot(WS_Normal, WS_halfVector));
+
+    //if(diffuse < 0.01)
+    //    specular = 0.0;
+    //else
+        specular = pow(specular, material.specularExponent * 5);
+
+    lout_ambient  += ambientLight.ambient * 0.1;
+    lout_diffuse  += ambientLight.diffuse * diffuse * 0.1;
+    lout_specular += ambientLight.diffuse * specular * 10.0f;
+}
+
+void computePointAndSpotlights() {
     for(int i=0; i < NR_LIGHTS; i++) {
         if(!lights[i].enabled)
             continue;
 
-        vec3 WS_halfVector;
+        vec3 VS_halfVector;
         vec3 VS_lightDirection = lights[i].WS_position;
         float attenuation = 1.0;
 
-        //if(lights[i].isLocal) {
         VS_lightDirection -= WS_Position;
         float lightDistance = length(VS_lightDirection);
         VS_lightDirection /= lightDistance;
@@ -97,13 +113,10 @@ void computeLight() {
         }
 
         vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
-        WS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
-        //} else {
-        //    WS_halfVector = lights[i].WS_halfVector;
-        //}
+        VS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
 
         float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
-        float specular = max(0.0, dot(WS_Normal, WS_halfVector));
+        float specular = max(0.0, dot(WS_Normal, VS_halfVector));
 
         if(diffuse < 0.01)
             specular = 0.0;
@@ -114,6 +127,15 @@ void computeLight() {
         lout_diffuse += lights[i].color * diffuse * attenuation;
         lout_specular += lights[i].color * specular * attenuation;
     }
+}
+
+void computeLight() {
+    lout_ambient = vec3(0.0);
+    lout_diffuse = vec3(0.0);
+    lout_specular = vec3(0.0);
+
+    computeAmbientLight();
+    computePointAndSpotlights();
 }
 
 vec3 computeMaterial() {
@@ -129,11 +151,9 @@ vec3 computeMaterial() {
     if((material.flags & HAS_DIFFUSE_TEXTURE) > 0)
         diffuseColor = texture(material.diffuseTexture, UV).rgb; 
 
-    float vv = 1.0f; //0.2f + 1.0f - abs(cos(uTimer * 3.1415));
-    vv = clamp(vv, 0, 1);
-    ret += lout_ambient * ambientColor * vv; 
-    ret += lout_diffuse * diffuseColor * vv;
-    ret += lout_specular * vv;
+    ret += lout_ambient * ambientColor; 
+    ret += lout_diffuse * diffuseColor;
+    ret += lout_specular;
 
 //    ret = ret / (1.0f + ret);
     return ret;

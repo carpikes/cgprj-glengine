@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
     device->registerInputHandler(&c);
     float cnt = 0.0f;
 
+    /*
     static float col[][3] = {
         {0.2,0.1,1},
         {0.1,0.1,1},
@@ -101,15 +102,41 @@ int main(int argc, char *argv[]) {
         p->setAttenuation(glm::vec3(0,0.08, 0.001));
         p->setAmbientColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.3f);
         p->setDiffuseColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.7f);
+        p->enable();
+
         scene->addLight(p);
     }
-    //for(int i=0;i<8;i++)
-    //    renderer->disableLight(i);
+    */
+
     renderer->setScene(scene);
 
-    //c.setCameraPos(glm::vec3(80 * sin(-cnt/2.0f),20,-80 * cos(-cnt/2.0f)));
+    AmbientLightPtr ambient = std::make_shared<AmbientLight>();
+    //vector<PointLightPtr>& plights = scene->getLights();
+    ambient->setDiffuseColor(glm::vec3(0.8f));
+    ambient->setAmbientColor(glm::vec3(0.2f));
+    ambient->setDirection(glm::vec3(0,0,-1));
+    ambient->enable();
+    scene->setAmbientLight(ambient);
+
     while(device->isRunning()) {
         c.update();
+
+        /*
+        for(size_t i=0;i<plights.size();i++) {
+            PointLightPtr p = scene->getLights()[i];
+
+            float dist = 30;
+            float phase = 1;
+            if(i < 4) {
+                dist = 60;
+                phase = 1.5;
+            }
+
+            glm::vec3 lpos = glm::vec3(sin(cnt*phase + i/4.0*6.28) * dist,5, 
+                            cos(cnt*phase + i/4.0*6.28) * dist);
+            p->setPosition(lpos);
+        }
+        */
 
         device->beginFrame();
         renderer->renderFrame(c);

@@ -70,8 +70,8 @@ void FirstPersonCamera::handleKeyPress(int key, int scancode, int action,
 
 void FirstPersonCamera::handleMouseMove(double xpos, double ypos) {
     if(mFirstTime == false) {
-        float dx = (xpos - mLastMouseX) / 1024.0f;
-        float dy = (ypos - mLastMouseY) / 768.0f;
+        float dx = (xpos - mLastMouseX) / 1920.0f;
+        float dy = (ypos - mLastMouseY) / 1080.0f;
 
         mBeta += dx * 8.0f;
         mAlpha += dy * 8.0f;

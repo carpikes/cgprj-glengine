@@ -17,9 +17,9 @@ class Scene {
 public:
     Scene() : mAmbientLight(nullptr) {}
 
-    const std::vector<ObjectPtr>& getObjects() const { return mObjects; }
-    const std::vector<PointLightPtr>& getLights() const { return mLights; }
-    const AmbientLightPtr getAmbientLight() const { return mAmbientLight; }
+    std::vector<ObjectPtr>& getObjects() { return mObjects; }
+    std::vector<PointLightPtr>& getLights() { return mLights; }
+    AmbientLightPtr getAmbientLight() { return mAmbientLight; }
 
     void addObject(ObjectPtr mesh) {
         mObjects.push_back(mesh);
