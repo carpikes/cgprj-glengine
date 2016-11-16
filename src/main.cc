@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
     //vector<PointLightPtr>& plights = scene->getLights();
     ambient->setDiffuseColor(glm::vec3(0.8f));
     ambient->setAmbientColor(glm::vec3(0.2f));
-    ambient->setDirection(glm::vec3(0,0,-1));
+    ambient->setDirection(glm::vec3(0,1,0));
     ambient->enable();
     scene->setAmbientLight(ambient);
 

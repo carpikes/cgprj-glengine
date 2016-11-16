@@ -68,21 +68,21 @@ uniform float uTimer;
 void computeAmbientLight() {
     if(ambientLight.enabled == false)
         return;
-    vec3 WS_lightDirection = vec3(uModelToWorld * vec4(ambientLight.direction, 0));
-    vec3 WS_halfVector = normalize(uWS_EyePos) + normalize(WS_lightDirection);
-    WS_halfVector = normalize(WS_halfVector);
+    vec3 VS_lightDirection = normalize(ambientLight.direction);
+    vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
+    vec3 VS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
 
-    float diffuse = max(0.0, dot(WS_Normal, ambientLight.direction));
-    float specular = max(0.0, dot(WS_Normal, WS_halfVector));
+    float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
+    float specular = max(0.0, dot(WS_Normal, VS_halfVector));
 
-    //if(diffuse < 0.01)
-    //    specular = 0.0;
-    //else
-        specular = pow(specular, material.specularExponent * 5);
+    if(diffuse < 0.01)
+        specular = 0.0;
+    else
+        specular = pow(specular, material.specularExponent);
 
-    lout_ambient  += ambientLight.ambient * 0.1;
-    lout_diffuse  += ambientLight.diffuse * diffuse * 0.1;
-    lout_specular += ambientLight.diffuse * specular * 10.0f;
+    lout_ambient  += ambientLight.ambient;
+    lout_diffuse  += ambientLight.diffuse * diffuse;
+    lout_specular += ambientLight.diffuse * specular;
 }
 
 void computePointAndSpotlights() {
