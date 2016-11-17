@@ -106,10 +106,13 @@ void computePointAndSpotlights() {
         if(lights[i].isSpot) {
             // TODO normalize coneDirection
             float spotCos = dot(VS_lightDirection, -lights[i].coneDirection);
-            if(spotCos < lights[i].spotCosCutoff)
-                attenuation = 0.0;
+            if(spotCos > 0.8f) //lights[i].spotCosCutoff)
+                attenuation = 1.0f;
+            else if(spotCos > 0.3f)
+                attenuation *= pow((spotCos - 0.3f)/(0.8f - 0.3f), 10.0f);
             else
-                attenuation *= pow(spotCos, lights[i].spotExponent);
+                attenuation = 0.0f;
+
         }
 
         vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
@@ -118,7 +121,7 @@ void computePointAndSpotlights() {
         float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
         float specular = max(0.0, dot(WS_Normal, VS_halfVector));
 
-        if(diffuse < 0.01)
+        if(diffuse < 0.01 || true)
             specular = 0.0;
         else
             specular = pow(specular, material.specularExponent);

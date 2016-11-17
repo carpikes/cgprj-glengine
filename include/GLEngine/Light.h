@@ -44,20 +44,48 @@ private:
 class PointLight : public Light {
     TAG_DEF("PointLight")
 public:
+    PointLight() {
+        mIsSpot = false;
+    }
     void setPosition(const glm::vec3& position) { mPosition = position; }
     glm::vec3 getPosition() const { return mPosition; }
 
     void setAttenuation(const glm::vec3& attenuation) { mAtten = attenuation; }
     glm::vec3 getAttenuation() const { return mAtten; }
 
-    bool update(int n, Shader &s);
-private:
+    virtual bool update(int n, Shader &s);
+protected:
+    bool mIsSpot;
     glm::vec3 mPosition, mAtten;
+};
+
+class SpotLight : public PointLight {
+    TAG_DEF("SpotLight")
+public:
+    SpotLight() {
+        PointLight();
+        mIsSpot = true;
+        mCutoff = 0.0f;
+        mExponent = 1.0f;
+    }
+    void setConeDirection(const glm::vec3& direction) { mDirection = direction; }
+    glm::vec3 getConeDirection() const { return mDirection; }
+
+    void setCutoff(float cutoff) { mCutoff = cutoff; }
+    float getCutoff() const { return mCutoff; }
+    void setExponent(float exponent) { mExponent = exponent; }
+    float getExponent() const { return mExponent; }
+
+    virtual bool update(int n, Shader &s);
+protected:
+    glm::vec3 mDirection;
+    float mCutoff, mExponent;
 };
 
 typedef std::shared_ptr<Light> LightPtr;
 typedef std::shared_ptr<AmbientLight> AmbientLightPtr;
 typedef std::shared_ptr<PointLight> PointLightPtr;
+typedef std::shared_ptr<SpotLight> SpotLightPtr;
 } /* GLEngine */ 
 
 #endif /* ifndef GLENGINE_LIGHT_H */

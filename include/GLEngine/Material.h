@@ -15,6 +15,8 @@ struct Material {
         mAmbientTexture = mDiffuseTexture = mSpecularTexture =
         mHighlightTexture = mAlphaTexture = mBumpTexture =
         mDisplacementTexture = mStencilTexture = nullptr;
+        mSpecularExponent = 0.0f;
+        mAlpha = mOpticalDensity = 1.0f;
     }
 
     glm::vec3 mAmbientColor, mDiffuseColor;
