@@ -3,18 +3,10 @@
 namespace GLEngine
 {
 
-bool AmbientLight::update(Shader& s, const Camera& c, const glm::mat4& wMat) {
+bool AmbientLight::update(Shader& s) {
     s.set("ambientLight.enabled", mEnabled);
 
-    (void)wMat;
-    (void)c;
     if(mEnabled) {
-        //glm::vec3 mDirectionWS = glm::normalize(
-        //    glm::vec3(wMat * glm::vec4(mDirection,0)));
-
-        //glm::vec3 halfVector = glm::normalize(c.getCameraPos()) + 
-        //    glm::normalize(mDirectionWS);
-        //s.set("ambientLight.halfVector", glm::normalize(halfVector));
         s.set("ambientLight.direction", mDirection);
         s.set("ambientLight.ambient", mAmbientColor);
         s.set("ambientLight.diffuse", mDiffuseColor);
@@ -22,6 +14,19 @@ bool AmbientLight::update(Shader& s, const Camera& c, const glm::mat4& wMat) {
 
     return true;
 }
+
+bool HemiLight::update(Shader& s) {
+    s.set("hemiLight.enabled", mEnabled);
+
+    if(mEnabled) {
+        s.set("hemiLight.position", mPosition);
+        s.set("hemiLight.upColor", mUpColor);
+        s.set("hemiLight.downColor", mDownColor);
+    }
+
+    return true;
+}
+
 
 #ifdef _U
 #error "_U is already defined"

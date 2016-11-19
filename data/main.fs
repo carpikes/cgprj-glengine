@@ -22,6 +22,7 @@ struct Material {
     sampler2D ambientTexture;
     vec3      diffuseColor;
     sampler2D diffuseTexture;
+    vec3      specularColor;
     float     specularExponent;
     sampler2D specularTexture;
     sampler2D bumpTexture;
@@ -47,7 +48,13 @@ struct AmbientLight {
     vec3 direction;
     vec3 ambient;
     vec3 diffuse;
-    vec3 halfVector;
+};
+
+struct HemiLight {
+    bool enabled;
+    vec3 position;
+    vec3 upColor;
+    vec3 downColor;
 };
 
 in vec2 UV;
@@ -58,6 +65,8 @@ out vec4 oColor;
 
 uniform LightProperties lights[NR_LIGHTS];
 uniform AmbientLight ambientLight;
+uniform HemiLight hemiLight;
+
 uniform Material material;
 uniform vec3 uWS_EyePos;
 uniform mat4 uModelToWorld;
@@ -65,8 +74,18 @@ uniform mat4 uModelToWorld;
 vec3 lout_ambient, lout_diffuse, lout_specular;
 uniform float uTimer;
 
+void computeHemiLight() {
+    if(!hemiLight.enabled)
+        return;
+
+    vec3 lightVec = normalize(hemiLight.position - WS_Position);
+    float cosTheta = dot(WS_Normal, lightVec);
+    float a = cosTheta * 0.5 + 0.5;
+    lout_ambient += mix(hemiLight.downColor, hemiLight.upColor, a);
+}
+
 void computeAmbientLight() {
-    if(ambientLight.enabled == false)
+    if(!ambientLight.enabled)
         return;
     vec3 VS_lightDirection = normalize(ambientLight.direction);
     vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
@@ -106,13 +125,10 @@ void computePointAndSpotlights() {
         if(lights[i].isSpot) {
             // TODO normalize coneDirection
             float spotCos = dot(VS_lightDirection, -lights[i].coneDirection);
-            if(spotCos > 0.8f) //lights[i].spotCosCutoff)
-                attenuation = 1.0f;
-            else if(spotCos > 0.3f)
-                attenuation *= pow((spotCos - 0.3f)/(0.8f - 0.3f), 10.0f);
-            else
+            if(spotCos < lights[i].spotCosCutoff)
                 attenuation = 0.0f;
-
+            else
+                attenuation *= pow(spotCos, lights[i].spotExponent);
         }
 
         vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
@@ -121,7 +137,7 @@ void computePointAndSpotlights() {
         float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
         float specular = max(0.0, dot(WS_Normal, VS_halfVector));
 
-        if(diffuse < 0.01 || true)
+        if(diffuse < 0.01)
             specular = 0.0;
         else
             specular = pow(specular, material.specularExponent);
@@ -138,6 +154,7 @@ void computeLight() {
     lout_specular = vec3(0.0);
 
     computeAmbientLight();
+    computeHemiLight();
     computePointAndSpotlights();
 }
 
@@ -145,6 +162,7 @@ vec3 computeMaterial() {
     vec3 ret = vec3(0,0,0);
     vec3 ambientColor = material.ambientColor;
     vec3 diffuseColor = material.diffuseColor;
+    vec3 specularColor = material.specularColor;
     
     if((material.flags & HAS_AMBIENT_TEXTURE) > 0)
         ambientColor = texture(material.ambientTexture, UV).rgb; 
@@ -154,9 +172,12 @@ vec3 computeMaterial() {
     if((material.flags & HAS_DIFFUSE_TEXTURE) > 0)
         diffuseColor = texture(material.diffuseTexture, UV).rgb; 
 
+    if((material.flags & HAS_SPECULAR_TEXTURE) > 0)
+        specularColor = texture(material.specularTexture, UV).rgb; 
+
     ret += lout_ambient * ambientColor; 
     ret += lout_diffuse * diffuseColor;
-    ret += lout_specular;
+    ret += lout_specular * specularColor;
 
 //    ret = ret / (1.0f + ret);
     return ret;

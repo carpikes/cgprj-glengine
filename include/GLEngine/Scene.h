@@ -20,6 +20,7 @@ public:
     std::vector<ObjectPtr>& getObjects() { return mObjects; }
     std::vector<PointLightPtr>& getLights() { return mLights; }
     AmbientLightPtr getAmbientLight() { return mAmbientLight; }
+    HemiLightPtr getHemiLight() { return mHemiLight; }
 
     void addObject(ObjectPtr mesh) {
         mObjects.push_back(mesh);
@@ -33,6 +34,10 @@ public:
         mAmbientLight = light;
     }
 
+    void setHemiLight(HemiLightPtr light) {
+        mHemiLight = light;
+    }
+
     virtual void update() {}
 
     bool removeFromDevice(Device& device);
@@ -41,6 +46,7 @@ private:
     std::vector<ObjectPtr> mObjects;
     std::vector<PointLightPtr> mLights;
     AmbientLightPtr mAmbientLight;
+    HemiLightPtr mHemiLight;
 };
 
 typedef std::shared_ptr<Scene> ScenePtr;

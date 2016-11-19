@@ -44,6 +44,7 @@ struct Material {
 
         shader.set("material.ambientColor", mAmbientColor);
         shader.set("material.diffuseColor", mDiffuseColor);
+        shader.set("material.specularColor", mSpecularColor);
         shader.set("material.specularExponent", mSpecularExponent);
 
         flags |= shader.setTexture("material.ambientTexture", 

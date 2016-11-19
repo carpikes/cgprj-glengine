@@ -53,9 +53,9 @@ void DirectRenderer::renderFrame(const Camera& camera) {
         mShader->set("uWS_NormalMatrix", o->getNormalMatrix());
 
         if(mScene->getAmbientLight() != nullptr)
-            mScene->getAmbientLight()->update(*mShader, camera, 
-                    o->getModelMatrix());
-
+            mScene->getAmbientLight()->update(*mShader);
+        if(mScene->getHemiLight() != nullptr)
+            mScene->getHemiLight()->update(*mShader);
 
         // Da spostare nella mesh
         for(MeshPart& part : mesh->getParts()) {

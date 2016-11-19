@@ -4,6 +4,9 @@
 #include <GLEngine/Engine.h>
 #include <GLEngine/FileReader/OBJFileReader.h>
 #include <GLEngine/ResourceManager.h>
+#include <chrono>
+
+typedef std::chrono::high_resolution_clock Clock;
 
 using namespace GLEngine;
 using namespace std;
@@ -75,75 +78,73 @@ int main(int argc, char *argv[]) {
     device->registerInputHandler(&c);
     float cnt = 0.0f;
 
-    /*
+    
     static float col[][3] = {
-        {0.2,0.1,1},
         {0.1,0.1,1},
         {0.1,1,0.1},
-        {0.1,1,1},
         {1,0.1,0.1},
-        {1,0.1,1},
-        {1,1,0},
-        {1,1,0},
     };
 
-    for(int i=0;i<8;i++) {
-        float dist = 30;
-        float phase = 1;
-        if(i < 4) {
-            dist = 60;
-            phase = 1.5;
-        }
-
-        glm::vec4 lpos = glm::vec4(sin(cnt*phase + i/4.0*6.28) * dist,5, 
-                        cos(cnt*phase + i/4.0*6.28) * dist,1);
-        PointLightPtr p = std::make_shared<PointLight>();
-        p->setPosition(glm::vec3(lpos));
-        p->setAttenuation(glm::vec3(0,0.08, 0.001));
+    for(int i=0;i<3;i++) {
+        SpotLightPtr p = std::make_shared<SpotLight>();
+        p->setPosition(glm::vec3(0,20,0));
+        //p->setAttenuation(glm::vec3(0,0.08, 0.001));
+        p->setAttenuation(glm::vec3(1,0.0,0));
         p->setAmbientColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.3f);
         p->setDiffuseColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.7f);
-        p->enable();
-
+        p->setConeDirection(glm::vec3(0,-1,0));
+        p->setCutoffAngleDeg(30.0f);
+        p->setExponent(10.0f);
+        //p->enable();
         scene->addLight(p);
     }
-    */
+
 
     renderer->setScene(scene);
 
     AmbientLightPtr ambient = std::make_shared<AmbientLight>();
-    //vector<PointLightPtr>& plights = scene->getLights();
-    ambient->setDiffuseColor(glm::vec3(0.8f));
+    ambient->setDiffuseColor(glm::vec3(0.3f));
     ambient->setAmbientColor(glm::vec3(0.2f));
-    ambient->setDirection(glm::vec3(0,1,0));
+    ambient->setDirection(glm::vec3(0,1.0f,0));
     ambient->enable();
     scene->setAmbientLight(ambient);
 
+    HemiLightPtr hemi = std::make_shared<HemiLight>();
+    hemi->setPosition(glm::vec3(0,5000,0));
+    hemi->setUpColor(glm::vec3(0.1f, 0.1f, 0.5f));
+    hemi->setDownColor(glm::vec3(0.2f, 0.1f, 0.0f));
+    hemi->enable();
+    scene->setHemiLight(hemi);
+
+    auto t1 = Clock::now();
+    vector<PointLightPtr>& plights = scene->getLights();
     while(device->isRunning()) {
         c.update();
 
-        /*
         for(size_t i=0;i<plights.size();i++) {
             PointLightPtr p = scene->getLights()[i];
 
-            float dist = 30;
-            float phase = 1;
-            if(i < 4) {
-                dist = 60;
-                phase = 1.5;
-            }
-
-            glm::vec3 lpos = glm::vec3(sin(cnt*phase + i/4.0*6.28) * dist,5, 
-                            cos(cnt*phase + i/4.0*6.28) * dist);
-            p->setPosition(lpos);
+            glm::vec3 lpos = glm::vec3(
+                    sin(cnt + i/3.0*6.28) * 0.5,
+                    -0.8, 
+                    cos(cnt + i/3.0*6.28) * 0.5
+            );
+            SpotLight& s = dynamic_cast<SpotLight&>(*p);
+            s.setConeDirection(lpos);
+            s.setExponent(20.0f + 10 * pow(cos(cnt * M_PI),6));
         }
-        */
 
         device->beginFrame();
         renderer->renderFrame(c);
         device->endFrame();
 
-        usleep(20000);
-        cnt += 0.042666666f;
+        auto t2 = Clock::now();
+        auto dt = std::chrono::duration_cast<std::chrono::microseconds>(t2 - t1).count();
+        t1 = t2;
+
+        const float bpm = 123.0f;
+        cnt += ((float)dt / 1000.0f) / (60000.0f / bpm);
+        usleep(10000);
     }
 
     return 0;
