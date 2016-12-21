@@ -296,40 +296,82 @@ bool OBJFileReader::process(MeshPart &out) {
         return true;
 
     DEBP("Vertices: %u, Vertex IDX: %u", mVertices.size(), mVertexIdx.size());
-    for(size_t i = 0; i < mVertexIdx.size(); i++) {
-        int32_t normal = 0, uv = 0;
-        int32_t vertex = mVertexIdx[i];
-        if(mFacesType & 1)
-            normal = mNormalIdx[i];
-        if(mFacesType & 2)
-            uv = mUvIdx[i];
-        if(vertex < 1 || (size_t)vertex > mVertices.size() || 
-                         (size_t)normal > mNormals.size()  ||
-                         (size_t)uv > mUv.size()) {
-            ERRP("Invalid index (%d,%d,%d)", vertex, normal, uv);
-            return false;
+    for(size_t i = 0; i < mVertexIdx.size(); i+=3) {
+        glm::vec3 vertices[3], normals[3];
+        glm::vec2 uv[3];
+
+        for(int j=0;j<3;j++) {
+            int32_t vpos = mVertexIdx[i+j]-1;
+            if(vpos < 0 || vpos >= (int32_t)mVertices.size()) {
+                LOGP("Vertex %d has invalid location", i);
+                return false;
+            }
+            vertices[j] = mVertices[vpos];
         }
 
-        Vertex vx;
-        vx.vertex = mVertices[vertex-1];
-        if(normal > 0)
-            vx.normal = glm::normalize(mNormals[normal-1]);
-        else
-            ERRP("Wat? %s", this->mMaterialName.c_str());
+        bool recalcNormals = false;
 
-        if(uv > 0) 
-            vx.uv = mUv[uv-1];
-        else
-            ERR("UV WAT?");
+        if(!(mFacesType & 1)) // no normals
+            recalcNormals = true;
 
-        out.vertices().push_back(vx);
+        for(int j=0;j<3 && !recalcNormals;j++) {
+            int32_t npos = mNormalIdx[i+j]-1;
+            if(npos < 0 || npos >= (int32_t)mNormals.size())
+                recalcNormals = true;
+            else 
+                normals[j] = glm::normalize(mNormals[npos]);
+        }
+        
+        // normals are invalid. recalculate them from scratch
+        glm::vec3 d1 = vertices[1] - vertices[0];
+        glm::vec3 d2 = vertices[2] - vertices[0];
+        if(recalcNormals) {
+            glm::vec3 normal = glm::normalize(glm::cross(d1, d2));
+            for(int j=0;j<3;j++)
+                normals[j] = normal;
+        }
 
-        /*
-        LOGP("Vertex %d: (%f,%f,%f) N(%f,%f,%f) UV(%f,%f)", vertex,
-                vx.vertex.x, vx.vertex.y, vx.vertex.z,
-                vx.normal.x, vx.normal.y, vx.normal.z,
-                vx.uv.x, vx.uv.y);
-        */
+        // has UV
+        glm::vec3 tangent;
+        if(mFacesType & 2) {
+            for(int j=0;j<3;j++)
+                uv[j] = mUv[mUvIdx[i+j]-1];
+
+            glm::vec2 du1 = uv[1]-uv[0];
+            glm::vec2 du2 = uv[2]-uv[0];
+
+            float r = 1.0f / (du1.x * du2.y - du1.y * du2.x);
+            tangent = glm::normalize((d1 * du2.y - d2 * du1.y)*r);
+        } else {
+            LOG("No texture!?");
+        }
+
+        for(size_t j = 0; j < 3; j++) {
+            int32_t uv = 0;
+            if(mFacesType & 2)
+                uv = mUvIdx[i+j];
+
+            Vertex vx;
+            vx.vertex = vertices[j];
+            vx.normal = normals[j];
+            vx.tangent = tangent;
+
+            if(uv > 0) 
+                vx.uv = mUv[uv-1];
+            else
+                ERR("UV WAT?");
+
+            out.vertices().push_back(vx);
+
+            /*
+            LOGP("Vertex %d: (%f,%f,%f) N(%f,%f,%f) T(%f,%f,%f) UV(%f,%f)", i+j,
+                    vx.vertex.x, vx.vertex.y, vx.vertex.z,
+                    vx.normal.x, vx.normal.y, vx.normal.z,
+                    vx.tangent.x, vx.tangent.y, vx.tangent.z,
+                    vx.uv.x, vx.uv.y);
+            */
+
+        }
 
         out.faces().push_back(i);
     }

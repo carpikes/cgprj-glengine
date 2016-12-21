@@ -8,7 +8,6 @@ bool DirectRenderer::setScene(ScenePtr scene) {
         return false;
 
     mShader = &(sEngine.getDefaultShader());
-    mShader->enable();
 
     return true;
 }
@@ -19,13 +18,14 @@ void DirectRenderer::renderFrame(const Camera& camera) {
 
     MaterialManager& mtlMgr = sEngine.getMaterialManager();
 
-    for(int i=0;i<3;i++)
+    for(int i=0;i<4;i++)
         glEnableVertexAttribArray(i);
 
     glm::vec3 cameraPos = camera.getCameraPos();
     glm::mat4 viewMat = camera.getViewMatrix();
     glm::mat4 projMat = camera.getProjMatrix();
 
+    mShader->enable();
     mShader->set("uWS_EyePos", cameraPos);
     
     auto& lights = mScene->getLights();
@@ -64,7 +64,7 @@ void DirectRenderer::renderFrame(const Camera& camera) {
                 continue;
 
             glBindBuffer(GL_ARRAY_BUFFER, part.videoPtr());
-            for(int i=0;i<3;i++)
+            for(int i=0;i<4;i++)
                 glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                       (void *) (i * sizeof(glm::vec3)));
 
@@ -74,7 +74,7 @@ void DirectRenderer::renderFrame(const Camera& camera) {
         } 
     }
 
-    for(int i=0;i<3;i++)
+    for(int i=0;i<4;i++)
         glDisableVertexAttribArray(i);
 }
 

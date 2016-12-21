@@ -59,8 +59,11 @@ struct HemiLight {
 
 in vec2 UV;
 in vec3 WS_Normal;
+in vec3 WS_Tangent;
+in vec3 WS_Bitangent;
 in vec3 WS_Position;
 in vec3 CS_EyeDirection;
+
 out vec4 oColor;
 
 uniform LightProperties lights[NR_LIGHTS];
@@ -71,6 +74,7 @@ uniform Material material;
 uniform vec3 uWS_EyePos;
 uniform mat4 uModelToWorld;
 
+vec3 WS_NormalPostProc = WS_Normal;
 vec3 lout_ambient, lout_diffuse, lout_specular;
 uniform float uTimer;
 
@@ -79,7 +83,7 @@ void computeHemiLight() {
         return;
 
     vec3 lightVec = normalize(hemiLight.position - WS_Position);
-    float cosTheta = dot(WS_Normal, lightVec);
+    float cosTheta = dot(WS_NormalPostProc, lightVec);
     float a = cosTheta * 0.5 + 0.5;
     lout_ambient += mix(hemiLight.downColor, hemiLight.upColor, a);
 }
@@ -91,8 +95,8 @@ void computeAmbientLight() {
     vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
     vec3 VS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
 
-    float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
-    float specular = max(0.0, dot(WS_Normal, VS_halfVector));
+    float diffuse = max(0.0, dot(WS_NormalPostProc, VS_lightDirection));
+    float specular = max(0.0, dot(WS_NormalPostProc, VS_halfVector));
 
     if(diffuse < 0.01)
         specular = 0.0;
@@ -134,8 +138,8 @@ void computePointAndSpotlights() {
         vec3 VS_cameraPos = normalize(-uWS_EyePos - WS_Position);
         VS_halfVector = normalize(VS_lightDirection + VS_cameraPos);
 
-        float diffuse = max(0.0, dot(WS_Normal, VS_lightDirection));
-        float specular = max(0.0, dot(WS_Normal, VS_halfVector));
+        float diffuse = max(0.0, dot(WS_NormalPostProc, VS_lightDirection));
+        float specular = max(0.0, dot(WS_NormalPostProc, VS_halfVector));
 
         if(diffuse < 0.01)
             specular = 0.0;
@@ -183,11 +187,22 @@ vec3 computeMaterial() {
     return ret;
 }
 
+void computeNormal() {
+    if((material.flags & HAS_BUMP_TEXTURE) > 0)
+    {
+        vec3 ncol = texture(material.bumpTexture, UV).rgb; 
+        ncol = (2 * ncol) - 1;
+        vec3 n = WS_Tangent * ncol.x + WS_Bitangent * ncol.y + WS_Normal * ncol.z;
+        WS_NormalPostProc = normalize(n);
+    }
+}
+
 void main() {
     vec3 color = vec3(0,0,0);
 
     vec4 t = texture(material.diffuseTexture, UV).rgba;
 
+    computeNormal();
     computeLight();
     color += computeMaterial();
 

@@ -111,8 +111,8 @@ int main(int argc, char *argv[]) {
 
     HemiLightPtr hemi = std::make_shared<HemiLight>();
     hemi->setPosition(glm::vec3(0,5000,0));
-    hemi->setUpColor(glm::vec3(0.1f, 0.1f, 0.5f));
-    hemi->setDownColor(glm::vec3(0.2f, 0.1f, 0.0f));
+    hemi->setUpColor(glm::vec3(0.1f, 0.1f, 0.2f));
+    hemi->setDownColor(glm::vec3(0.2f, 0.2f, 0.2f));
     hemi->enable();
     scene->setHemiLight(hemi);
 

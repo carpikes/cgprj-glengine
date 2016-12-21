@@ -29,7 +29,7 @@
 
 #pragma pack(1)
 struct Vertex {
-    glm::vec3 vertex, normal;
+    glm::vec3 vertex, normal, tangent;
     glm::vec2 uv;
 };
 #pragma pack()
