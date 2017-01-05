@@ -64,7 +64,7 @@ in vec3 WS_Bitangent;
 in vec3 WS_Position;
 in vec3 CS_EyeDirection;
 
-out vec4 oColor;
+layout(location = 0) out vec3 oColor;
 
 uniform LightProperties lights[NR_LIGHTS];
 uniform AmbientLight ambientLight;
@@ -206,5 +206,5 @@ void main() {
     computeLight();
     color += computeMaterial();
 
-    oColor = vec4(color, t.a);
+    oColor = color;
 }

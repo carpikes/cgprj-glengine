@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
 
     Device *device = sEngine.getDevice();
-    Renderer *renderer = new DirectRenderer(*device);
+    LolRenderer *renderer = new LolRenderer(*device);
     FirstPersonCamera c(75.0f, 16.0f/9.0f);
 
     device->registerInputHandler(&c);
