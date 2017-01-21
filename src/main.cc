@@ -1,5 +1,5 @@
 #include <GLEngine/Common.h>
-#include <GLEngine/Renderer.h>
+#include <GLEngine/Pipeline.h>
 #include <GLEngine/Scene.h>
 #include <GLEngine/Engine.h>
 #include <GLEngine/FileReader/OBJFileReader.h>
@@ -72,7 +72,8 @@ int main(int argc, char *argv[]) {
 
 
     Device *device = sEngine.getDevice();
-    LolRenderer *renderer = new LolRenderer(*device);
+    SimplePipeline pipeline(*device);
+    
     FirstPersonCamera c(75.0f, 16.0f/9.0f);
 
     device->registerInputHandler(&c);
@@ -99,8 +100,7 @@ int main(int argc, char *argv[]) {
         scene->addLight(p);
     }
 
-
-    renderer->setScene(scene);
+    scene->loadInDevice(*device);
 
     AmbientLightPtr ambient = std::make_shared<AmbientLight>();
     ambient->setDiffuseColor(glm::vec3(0.3f));
@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
         }
 
         device->beginFrame();
-        renderer->renderFrame(c);
+        pipeline.renderFrame(scene, c);
         device->endFrame();
 
         auto t2 = Clock::now();

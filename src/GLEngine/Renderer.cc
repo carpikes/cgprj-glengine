@@ -3,16 +3,7 @@
 namespace GLEngine
 {
 
-bool DirectRenderer::setScene(ScenePtr scene) {
-    if(!Renderer::setScene(scene))
-        return false;
-
-    mShader = &(sEngine.getDefaultShader());
-
-    return true;
-}
-
-void DirectRenderer::renderFrame(const Camera& camera) {
+void DirectRenderer::renderFrame(ScenePtr scene, const Camera& camera) {
     if(mShader == nullptr)
         return;
 
@@ -28,7 +19,7 @@ void DirectRenderer::renderFrame(const Camera& camera) {
     mShader->enable();
     mShader->set("uWS_EyePos", cameraPos);
     
-    auto& lights = mScene->getLights();
+    auto& lights = scene->getLights();
     int n_light = 0;
     for(const PointLightPtr i : lights) {
         if(!i->enabled())
@@ -41,7 +32,7 @@ void DirectRenderer::renderFrame(const Camera& camera) {
         i->update(n_light++, *mShader);
     }
 
-    for(const ObjectPtr o : mScene->getObjects()) {
+    for(const ObjectPtr o : scene->getObjects()) {
         MeshPtr mesh = o->getMesh();
         if(mesh == nullptr)
             continue;
@@ -52,10 +43,10 @@ void DirectRenderer::renderFrame(const Camera& camera) {
         mShader->set("uModelViewProj", mvpMat);
         mShader->set("uWS_NormalMatrix", o->getNormalMatrix());
 
-        if(mScene->getAmbientLight() != nullptr)
-            mScene->getAmbientLight()->update(*mShader);
-        if(mScene->getHemiLight() != nullptr)
-            mScene->getHemiLight()->update(*mShader);
+        if(scene->getAmbientLight() != nullptr)
+            scene->getAmbientLight()->update(*mShader);
+        if(scene->getHemiLight() != nullptr)
+            scene->getHemiLight()->update(*mShader);
 
         // Da spostare nella mesh
         for(MeshPart& part : mesh->getParts()) {
