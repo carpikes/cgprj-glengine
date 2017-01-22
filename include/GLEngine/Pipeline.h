@@ -33,7 +33,8 @@ private:
 class DeferredPipeline : public Pipeline {
     TAG_DEF("DeferredPipeline")
 public:
-    DeferredPipeline(Device &device) : Pipeline(device), mDirect(device) {
+    DeferredPipeline(Device &device) : Pipeline(device), mFirstPass(device),
+                                       mLightPass(device) {
         glGenBuffers(1, &mQuadVBO);
 
         mRenderPosition.allocate(mDevice.width(), mDevice.height(), 
@@ -62,8 +63,6 @@ public:
 
         assert(mFrameBuffer.isOk());
 
-		mShader = new Shader("../data/void.vs", "../data/mrt_show.fs");
-
         glGenVertexArrays(1, &mQuadVAO);
         glBindVertexArray(mQuadVAO);
 
@@ -84,7 +83,6 @@ public:
     ~DeferredPipeline() {
         glDeleteBuffers(1, &mQuadVBO); 
         glDeleteVertexArrays(1, &mQuadVAO);
-        delete mShader;
     }
 
     virtual void renderFrame(ScenePtr scene, const Camera& camera)
@@ -92,7 +90,7 @@ public:
         mFrameBuffer.enable();
         glViewport(0,0,mDevice.width(),mDevice.height());
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        mDirect.renderFrame(scene, camera); 
+        mFirstPass.renderFrame(scene, camera); 
 
         // --------------------------------
         
@@ -100,12 +98,7 @@ public:
         mRenderNormal.enable(1);
         mRenderAlbedo.enable(2);
 
-        mShader->enable();
-        mShader->set("gPosition", 0);
-        mShader->set("gNormal", 1);
-        mShader->set("gAlbedo", 2);
-        mShader->set("time",Time);
-        Time+=0.02f;
+        mLightPass.renderFrame(scene, camera);
 
         Framebuffer::enableNull();
         glViewport(0,0,mDevice.width(),mDevice.height());
@@ -118,15 +111,14 @@ public:
     }
 
 private:
-    float Time = 0;
     GLuint mQuadVBO;
     GLuint mQuadVAO;
     Framebuffer mFrameBuffer;
     Renderbuffer mRenderBuffer;
     GLTexture mRenderPosition, mRenderNormal, mRenderAlbedo;
 
-    Shader *mShader;
-    DeferredFirstPass mDirect;
+    DeferredFirstPass mFirstPass;
+    DeferredLightPass mLightPass;
 };
 
 

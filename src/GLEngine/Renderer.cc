@@ -115,4 +115,37 @@ void DeferredFirstPass::renderFrame(ScenePtr scene, const Camera& camera) {
         glDisableVertexAttribArray(i);
 }
 
+void DeferredLightPass::renderFrame(ScenePtr scene, const Camera& camera) {
+    if(mShader == nullptr)
+        return;
+
+    for(int i=0;i<4;i++)
+        glEnableVertexAttribArray(i);
+
+    glm::vec3 cameraPos = camera.getCameraPos();
+
+    mShader->enable();
+    mShader->set("gPosition", 0);
+    mShader->set("gNormal", 1);
+    mShader->set("gAlbedo", 2);
+    mShader->set("uWS_EyePos", cameraPos);
+    
+    auto& lights = scene->getLights();
+    int n_light = 0;
+    for(const PointLightPtr i : lights) {
+        if(!i->enabled())
+            continue;
+
+        if(n_light >= mShader->getMaxNumberOfLights()) {
+            ERR("Too many lights");
+            break;
+        }
+        i->update(n_light++, *mShader);
+    }
+
+    if(scene->getAmbientLight() != nullptr)
+        scene->getAmbientLight()->update(*mShader);
+    if(scene->getHemiLight() != nullptr)
+        scene->getHemiLight()->update(*mShader);
+}
 } /* GLEngine */ 

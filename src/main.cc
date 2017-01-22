@@ -81,40 +81,45 @@ int main(int argc, char *argv[]) {
 
     
     static float col[][3] = {
-        {0.1,0.1,1},
-        {0.1,1,0.1},
-        {1,0.1,0.1},
+        {0.1,0.1,1}, {0.1,1,0.1}, {1,0.1,0.1}, {0.1,0.1,1},
+        {0.1,1,0.1}, {1,0.1,0.1}, {0.1,0.1,1}, {0.1,1,0.1},
+        {0.1,0.1,1}, {0.1,1,0.1}, {1,0.1,0.1}, {0.1,0.1,1},
+        {0.1,1,0.1}, {1,0.1,0.1}, {0.1,0.1,1}, {0.1,1,0.1},
     };
 
-    for(int i=0;i<3;i++) {
-        SpotLightPtr p = std::make_shared<SpotLight>();
-        p->setPosition(glm::vec3(0,20,0));
-        //p->setAttenuation(glm::vec3(0,0.08, 0.001));
-        p->setAttenuation(glm::vec3(1,0.0,0));
-        p->setAmbientColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.3f);
-        p->setDiffuseColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.7f);
+    for(int i=0;i<16;i++) {
+        PointLightPtr p = std::make_shared<PointLight>();
+        p->setPosition(glm::vec3(0,10,0));
+        //p->setAttenuation(glm::vec3(0,0.0, 0.01));
+        p->setAttenuation(glm::vec3(0,0,0.01f));
+        p->setAmbientColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f);
+        p->setDiffuseColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.9f);
+        /*
         p->setConeDirection(glm::vec3(0,-1,0));
         p->setCutoffAngleDeg(30.0f);
         p->setExponent(10.0f);
-        //p->enable();
+        */
+        p->enable();
         scene->addLight(p);
     }
 
     scene->loadInDevice(*device);
 
     AmbientLightPtr ambient = std::make_shared<AmbientLight>();
-    ambient->setDiffuseColor(glm::vec3(0.3f));
-    ambient->setAmbientColor(glm::vec3(0.2f));
+    ambient->setDiffuseColor(glm::vec3(0.0f));
+    ambient->setAmbientColor(glm::vec3(0.1f));
     ambient->setDirection(glm::vec3(0,1.0f,0));
     ambient->enable();
     scene->setAmbientLight(ambient);
 
+    /*
     HemiLightPtr hemi = std::make_shared<HemiLight>();
     hemi->setPosition(glm::vec3(0,5000,0));
     hemi->setUpColor(glm::vec3(0.1f, 0.1f, 0.2f));
     hemi->setDownColor(glm::vec3(0.2f, 0.2f, 0.2f));
     hemi->enable();
     scene->setHemiLight(hemi);
+    */
 
     auto t1 = Clock::now();
     vector<PointLightPtr>& plights = scene->getLights();
@@ -124,14 +129,21 @@ int main(int argc, char *argv[]) {
         for(size_t i=0;i<plights.size();i++) {
             PointLightPtr p = scene->getLights()[i];
 
+            float phase = i / 8.0f * 6.28f + i;
+            float x = cnt * ((i>>3) * 0.1f + 1.0f) + phase;
+
             glm::vec3 lpos = glm::vec3(
-                    sin(cnt + i/3.0*6.28) * 0.5,
-                    -0.8, 
-                    cos(cnt + i/3.0*6.28) * 0.5
+                    sin(x) * (2+i) * 3.0f,
+                    3, 
+                    cos(x) * (2+i) * 3.0f
             );
+
+            p->setPosition(lpos);
+            /*
             SpotLight& s = dynamic_cast<SpotLight&>(*p);
             s.setConeDirection(lpos);
             s.setExponent(20.0f + 10 * pow(cos(cnt * M_PI),6));
+            */
         }
 
         device->beginFrame();

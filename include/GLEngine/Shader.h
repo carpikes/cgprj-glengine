@@ -57,7 +57,7 @@ public:
     }
 
     int getMaxNumberOfLights() const {
-        return 8; // LOL
+        return 32; // LOL
     }
 
     uint32_t setTexture(const std::string& name, 

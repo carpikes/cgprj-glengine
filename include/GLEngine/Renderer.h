@@ -45,13 +45,29 @@ private:
 };
 
 class DeferredFirstPass : public Renderer {
-    TAG_DEF("DirectRenderer")
+    TAG_DEF("DeferredFirstPass")
 public:
     DeferredFirstPass(Device& device) : Renderer(device), mShader(nullptr) {
 		mShader = new Shader("../data/main_mrt.vs", "../data/main_mrt.fs");
     }
 
     virtual ~DeferredFirstPass() {
+        delete mShader; 
+    }
+
+    virtual void renderFrame(ScenePtr scene, const Camera& camera);
+private:
+    Shader *mShader;
+};
+
+class DeferredLightPass : public Renderer {
+    TAG_DEF("DeferredLightPass")
+public:
+    DeferredLightPass(Device& device) : Renderer(device), mShader(nullptr) {
+		mShader = new Shader("../data/void.vs", "../data/deferred_mix.fs");
+    }
+
+    virtual ~DeferredLightPass() {
         delete mShader; 
     }
 
