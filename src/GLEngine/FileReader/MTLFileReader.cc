@@ -205,7 +205,7 @@ HANDLER(ReadTexture) {
 HANDLER(BeginMaterial) {
     (void) type;
     MaterialManager& mtlMgr = mtl->mEngine->getMaterialManager();
-    char name[32] = {0};
+    char name[64] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 

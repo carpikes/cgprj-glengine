@@ -235,7 +235,7 @@ HANDLER(ReadFace) {
 }
 
 HANDLER(SetMaterialLib) {
-    char name[32] = {0};
+    char name[64] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 
@@ -251,7 +251,7 @@ HANDLER(SetMaterialLib) {
 }
 
 HANDLER(UseMaterial) {
-    char name[32] = {0};
+    char name[64] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
 
@@ -280,7 +280,7 @@ HANDLER(SkipLine) {
 }
 
 HANDLER(ChangeGroup) {
-    char name[32] = {0};
+    char name[64] = {0};
     if(fscanf(fp, "%32s", name) != 1)
         return false;
     DEBP("Changing group to %s", name);
