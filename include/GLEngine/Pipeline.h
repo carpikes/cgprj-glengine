@@ -40,7 +40,7 @@ public:
         mRenderPosition.allocate(mDevice.width(), mDevice.height(), 
                                  GL_RGBA16F, GL_RGB, GL_FLOAT);
         mRenderNormal.allocate(mDevice.width(), mDevice.height(), 
-                               GL_RGB16F, GL_RGB, GL_FLOAT);
+                               GL_RGBA16F, GL_RGB, GL_FLOAT);
         mRenderAlbedo.allocate(mDevice.width(), mDevice.height(), 
                                GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
 
@@ -89,6 +89,7 @@ public:
     {
         mFrameBuffer.enable();
         glViewport(0,0,mDevice.width(),mDevice.height());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mFirstPass.renderFrame(scene, camera); 
 
         // --------------------------------
@@ -102,11 +103,19 @@ public:
         Framebuffer::enableNull();
         glViewport(0,0,mDevice.width(),mDevice.height());
 
+        glClearColor(0,0,0,0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        glBindVertexArray(mQuadVAO);
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
 		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
         glDisableVertexAttribArray(0);
+
+        SkyboxPtr skybox = scene->getSkybox();
+        if(skybox != nullptr)
+            skybox->render(camera);
     }
 
 private:
@@ -155,6 +164,7 @@ public:
         glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
         glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), 
                      g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+        glBindVertexArray(0);
     }
 
     ~ToonShaderPipeline() {
@@ -172,12 +182,11 @@ public:
 
         // --------------------------------
         
+        glBindVertexArray(mQuadVAO);
         mRenderTexture.enable(0);
 
         mShader->enable();
         mShader->set("renderedTexture", 0);
-        mShader->set("time",Time);
-        Time+=0.02f;
 
         Framebuffer::enableNull();
         glViewport(0,0,mDevice.width(),mDevice.height());
@@ -187,10 +196,10 @@ public:
 		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
         glDisableVertexAttribArray(0);
+        glBindVertexArray(0);
     }
 
 private:
-    float Time = 0;
     GLuint mQuadVBO;
     GLuint mQuadVAO;
     Framebuffer mFrameBuffer;

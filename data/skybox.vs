@@ -7,6 +7,8 @@ uniform mat4 uViewProj;
 
 void main()
 {
-    gl_Position = uViewProj * vec4(vpos, 1.0);
+    vec4 pos = uViewProj * vec4(vpos, 1.0);
+    gl_Position = pos.xyww;
+
     UVW = -vpos;
 }  

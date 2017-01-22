@@ -53,6 +53,7 @@ public:
     }
 
     void enable() {
+        LOG("Enable()");
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTexID);
         for(int i=0;i<6;i++)
         {
@@ -81,7 +82,8 @@ public:
     }
 
     void render(const Camera& c) {
-        GLint OldCullFaceMode;
+        LOG("Render()");
+        GLint oldCullFace, oldDepthFunc;
 
         const glm::mat4 viewMat = glm::mat4(glm::mat3(c.getViewMatrix()));
         const glm::mat4 projMat = c.getProjMatrix();
@@ -90,10 +92,12 @@ public:
         //glBindBuffer(GL_ARRAY_BUFFER, mSkyboxVBO);
         glEnableVertexAttribArray(0);
 
-        glGetIntegerv(GL_CULL_FACE_MODE, &OldCullFaceMode);
+        glGetIntegerv(GL_CULL_FACE_MODE, &oldCullFace);
+        glGetIntegerv(GL_DEPTH_FUNC,&oldDepthFunc);
 
         glDepthMask(GL_FALSE);
         glCullFace(GL_FRONT);
+        glDepthFunc(GL_LEQUAL);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTexID);
@@ -108,7 +112,8 @@ public:
         glDisableVertexAttribArray(0);
         glBindVertexArray(0);
 
-        glCullFace(OldCullFaceMode);
+        glCullFace(oldCullFace);
+        glDepthFunc(oldDepthFunc);
     }
 
     void disable() {
@@ -130,8 +135,9 @@ private:
     VideoPtr mSkyboxVAO, mSkyboxVBO;
     Shader *mShader;
 };
+
+typedef std::shared_ptr<Skybox> SkyboxPtr;
     
-} /* GLEngine
- */ 
+} /* GLEngine */ 
 
 #endif /* ifndef GLENGINE_SKYBOX_H */

@@ -147,7 +147,7 @@ void main() {
     float spec;
 
     color = texture(gAlbedo, UV).rgb;
-    spec = texture(gAlbedo, UV).a;
+    spec = texture(gNormal, UV).a;
 
     WS_Normal = texture(gNormal, UV).rgb;
     WS_Position = texture(gPosition, UV).rgb;
@@ -156,4 +156,7 @@ void main() {
     computeLight();
 
     oColor = lout_ambient * color + lout_diffuse * color + lout_specular * spec; 
+    float val = texture(gAlbedo, UV).a;
+    if(val == 0)
+            discard;
 }

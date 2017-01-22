@@ -8,6 +8,10 @@ namespace GLEngine
     
 bool Scene::removeFromDevice(Device& device) {
     (void)device;
+
+    if(mSkybox != nullptr)
+        mSkybox->disable();
+
     return true;
 }
 
@@ -30,8 +34,8 @@ bool Scene::loadInDevice(Device& device) {
         mVideoPtrs.clear();
         return false;
     }
-    // TODO allocate faces buffer
 
+    // TODO allocate faces buffer
     size_t i = 0;
     for(ObjectPtr o : mObjects) {
         MeshPtr m = o->getMesh();
@@ -49,7 +53,6 @@ bool Scene::loadInDevice(Device& device) {
     }
 
     // e qua le texture
-        
     std::unordered_set<Image *> usedImages;
     MaterialManager& matManager = sEngine.getMaterialManager();
     for(const ObjectPtr o : mObjects)
@@ -63,6 +66,8 @@ bool Scene::loadInDevice(Device& device) {
     device.allocTextureBuffers(usedImages.size(), mTextureIds);
     device.writeTexture(mTextureIds, usedImages);
     
+    if(mSkybox != nullptr)
+        mSkybox->enable();
     return true;
 }
 

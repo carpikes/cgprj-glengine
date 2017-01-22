@@ -5,6 +5,7 @@
 #include "Camera.h"
 #include "Light.h"
 #include "Mesh.h"
+#include "Skybox.h"
 
 namespace GLEngine
 {
@@ -21,6 +22,7 @@ public:
     std::vector<PointLightPtr>& getLights() { return mLights; }
     AmbientLightPtr getAmbientLight() { return mAmbientLight; }
     HemiLightPtr getHemiLight() { return mHemiLight; }
+    SkyboxPtr getSkybox() { return mSkybox; }
 
     void addObject(ObjectPtr mesh) {
         mObjects.push_back(mesh);
@@ -38,6 +40,10 @@ public:
         mHemiLight = light;
     }
 
+    void setSkybox(SkyboxPtr skybox) {
+        mSkybox = skybox;
+    }
+
     virtual void update() {}
 
     bool removeFromDevice(Device& device);
@@ -47,6 +53,7 @@ private:
     std::vector<PointLightPtr> mLights;
     AmbientLightPtr mAmbientLight;
     HemiLightPtr mHemiLight;
+    SkyboxPtr mSkybox;
 };
 
 typedef std::shared_ptr<Scene> ScenePtr;

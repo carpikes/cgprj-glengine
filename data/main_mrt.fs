@@ -37,7 +37,7 @@ in vec3 WS_Bitangent;
 in vec3 WS_Position;
 
 layout (location = 0) out vec4 oPosition;
-layout (location = 1) out vec3 oNormal;
+layout (location = 1) out vec4 oNormal;
 layout (location = 2) out vec4 oAlbedoSpec;
 
 uniform Material material;
@@ -92,8 +92,9 @@ void main() {
 
     oPosition.rgb = WS_Position;
     oPosition.a = material.specularExponent;
-    oNormal = WS_NormalPostProc;
+    oNormal.rgb = WS_NormalPostProc;
+    oNormal.a = specularComponent;
 
     oAlbedoSpec.rgb = t * color;
-    oAlbedoSpec.a = specularComponent;
+    oAlbedoSpec.a = 1;
 }

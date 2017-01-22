@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
     scene->addObject(pPav);
 
     Device *device = sEngine.getDevice();
-    SimplePipeline pipeline(*device);
+    DeferredPipeline pipeline(*device);
     
     FirstPersonCamera c(75.0f, 16.0f/9.0f);
 
@@ -102,8 +102,6 @@ int main(int argc, char *argv[]) {
         scene->addLight(p);
     }
 
-    scene->loadInDevice(*device);
-
     AmbientLightPtr ambient = std::make_shared<AmbientLight>();
     ambient->setDiffuseColor(glm::vec3(0.4f));
     ambient->setAmbientColor(glm::vec3(0.1f));
@@ -118,16 +116,19 @@ int main(int argc, char *argv[]) {
     hemi->enable();
     scene->setHemiLight(hemi);
 
-    Skybox skybox({
+    std::vector<std::string> files = {
         "../data/skybox/miramar_ft.png",
         "../data/skybox/miramar_bk.png",
         "../data/skybox/miramar_dn.png",
         "../data/skybox/miramar_up.png",
         "../data/skybox/miramar_rt.png",
         "../data/skybox/miramar_lf.png",
-    });
+    };
+    SkyboxPtr skybox = std::make_shared<Skybox>(files);
 
-    skybox.enable();
+    scene->setSkybox(skybox);
+
+    scene->loadInDevice(*device);
 
     auto t1 = Clock::now();
     vector<PointLightPtr>& plights = scene->getLights();
@@ -155,7 +156,6 @@ int main(int argc, char *argv[]) {
         }
 
         device->beginFrame();
-        skybox.render(c);
         pipeline.renderFrame(scene, c);
         device->endFrame();
 

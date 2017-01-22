@@ -69,6 +69,10 @@ void DirectRenderer::renderFrame(ScenePtr scene, const Camera& camera) {
     for(int i=0;i<4;i++)
         glDisableVertexAttribArray(i);
     glBindVertexArray(0);
+
+    SkyboxPtr skybox = scene->getSkybox();
+    if(skybox != nullptr)
+        skybox->render(camera);
 }
 
 void DeferredFirstPass::renderFrame(ScenePtr scene, const Camera& camera) {
@@ -150,5 +154,6 @@ void DeferredLightPass::renderFrame(ScenePtr scene, const Camera& camera) {
         scene->getAmbientLight()->update(*mShader);
     if(scene->getHemiLight() != nullptr)
         scene->getHemiLight()->update(*mShader);
+    // Rendering is done in the caller
 }
 } /* GLEngine */ 
