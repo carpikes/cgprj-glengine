@@ -8,7 +8,7 @@
    PS_ == Projection Space
 */
 
-#define NR_LIGHTS 16
+#define NR_LIGHTS 10
 
 struct LightProperties {
     bool enabled;
@@ -56,6 +56,7 @@ uniform float uTimer;
 
 vec3 WS_Position = vec3(0);
 vec3 WS_Normal = vec3(0);
+float specularExponent = 1.0f;
 
 void computeHemiLight() {
     if(!hemiLight.enabled)
@@ -80,7 +81,7 @@ void computeAmbientLight() {
     if(diffuse < 0.01)
         specular = 0.0;
     else
-        specular = pow(specular, 1.0f);
+        specular = pow(specular, specularExponent);
 
     lout_ambient  += ambientLight.ambient;
     lout_diffuse  += ambientLight.diffuse * diffuse;
@@ -123,7 +124,7 @@ void computePointAndSpotlights() {
         if(diffuse < 0.01)
             specular = 0.0;
         else
-            specular = pow(specular, 1.0f);
+            specular = pow(specular, specularExponent);
 
         lout_ambient += lights[i].ambient * attenuation;
         lout_diffuse += lights[i].color * diffuse * attenuation;
@@ -150,6 +151,7 @@ void main() {
 
     WS_Normal = texture(gNormal, UV).rgb;
     WS_Position = texture(gPosition, UV).rgb;
+    specularExponent = texture(gPosition, UV).a;
 
     computeLight();
 

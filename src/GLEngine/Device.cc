@@ -52,10 +52,6 @@ bool Device::init(size_t width, size_t height, const std::string& title,
         return false;
     }
 
-    GLuint VertexArrayID;
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
-
     glfwSetWindowUserPointer(mWindow, this);
     glfwSetInputMode(mWindow, GLFW_STICKY_KEYS, GL_TRUE); 
     glfwSetInputMode(mWindow, GLFW_CURSOR, GLFW_CURSOR_DISABLED); 
@@ -73,7 +69,7 @@ bool Device::isRunning() {
 }
 
 void Device::beginFrame() {
-    glClearColor(0.0f,0.0f,0.0f, 0.0f);
+    glClearColor(0.0f,0.0f,1.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

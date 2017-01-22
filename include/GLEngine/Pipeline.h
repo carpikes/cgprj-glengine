@@ -38,7 +38,7 @@ public:
         glGenBuffers(1, &mQuadVBO);
 
         mRenderPosition.allocate(mDevice.width(), mDevice.height(), 
-                                 GL_RGB16F, GL_RGB, GL_FLOAT);
+                                 GL_RGBA16F, GL_RGB, GL_FLOAT);
         mRenderNormal.allocate(mDevice.width(), mDevice.height(), 
                                GL_RGB16F, GL_RGB, GL_FLOAT);
         mRenderAlbedo.allocate(mDevice.width(), mDevice.height(), 
