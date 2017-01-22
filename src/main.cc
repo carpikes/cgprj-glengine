@@ -4,6 +4,7 @@
 #include <GLEngine/Engine.h>
 #include <GLEngine/FileReader/OBJFileReader.h>
 #include <GLEngine/ResourceManager.h>
+#include <GLEngine/Skybox.h>
 #include <chrono>
 
 typedef std::chrono::high_resolution_clock Clock;
@@ -70,16 +71,14 @@ int main(int argc, char *argv[]) {
     pPav->setVideoTag(0);
     scene->addObject(pPav);
 
-
     Device *device = sEngine.getDevice();
-    DeferredPipeline pipeline(*device);
+    SimplePipeline pipeline(*device);
     
     FirstPersonCamera c(75.0f, 16.0f/9.0f);
 
     device->registerInputHandler(&c);
     float cnt = 0.0f;
 
-    
     static float col[][3] = {
         {0.1,0.1,1}, {0.1,1,0.1}, {1,0.1,0.1}, {0.1,0.1,1},
         {0.1,1,0.1}, {1,0.1,0.1}, {0.1,0.1,1}, {0.1,1,0.1},
@@ -106,20 +105,29 @@ int main(int argc, char *argv[]) {
     scene->loadInDevice(*device);
 
     AmbientLightPtr ambient = std::make_shared<AmbientLight>();
-    ambient->setDiffuseColor(glm::vec3(0.0f));
+    ambient->setDiffuseColor(glm::vec3(0.4f));
     ambient->setAmbientColor(glm::vec3(0.1f));
     ambient->setDirection(glm::vec3(0,1.0f,0));
     ambient->enable();
     scene->setAmbientLight(ambient);
 
-    /*
     HemiLightPtr hemi = std::make_shared<HemiLight>();
     hemi->setPosition(glm::vec3(0,5000,0));
     hemi->setUpColor(glm::vec3(0.1f, 0.1f, 0.2f));
     hemi->setDownColor(glm::vec3(0.2f, 0.2f, 0.2f));
     hemi->enable();
     scene->setHemiLight(hemi);
-    */
+
+    Skybox skybox({
+        "../data/skybox/miramar_ft.png",
+        "../data/skybox/miramar_bk.png",
+        "../data/skybox/miramar_dn.png",
+        "../data/skybox/miramar_up.png",
+        "../data/skybox/miramar_rt.png",
+        "../data/skybox/miramar_lf.png",
+    });
+
+    skybox.enable();
 
     auto t1 = Clock::now();
     vector<PointLightPtr>& plights = scene->getLights();
@@ -147,6 +155,7 @@ int main(int argc, char *argv[]) {
         }
 
         device->beginFrame();
+        skybox.render(c);
         pipeline.renderFrame(scene, c);
         device->endFrame();
 

@@ -35,11 +35,16 @@ public:
     void registerInputHandler(InputHandler *in) {
         mInputHandlers.push_back(in); 
     }
+
+    VideoPtr getDefaultVAO() const {
+        return mDefaultVAO;
+    }
 private:
     GLFWwindow* mWindow;
     size_t mWidth, mHeight;
     uint32_t mAASamples;
     std::vector<InputHandler *> mInputHandlers;
+    VideoPtr mDefaultVAO;
 };
     
 } /* GLEngine */ 

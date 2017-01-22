@@ -57,7 +57,7 @@ private:
     {
         // TODO: hardcoded, right?
         setDataPath("../data");
-        if(!mDevice->init(1280, 720, "GLEngine test", 4))
+        if(!mDevice->init(1280, 720, "GLEngine test", 1))
             throw "Cannot init device.";
 
         mDefaultShader = std::make_shared<Shader>

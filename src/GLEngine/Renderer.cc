@@ -9,6 +9,7 @@ void DirectRenderer::renderFrame(ScenePtr scene, const Camera& camera) {
 
     MaterialManager& mtlMgr = sEngine.getMaterialManager();
 
+    glBindVertexArray(mDevice.getDefaultVAO());
     for(int i=0;i<4;i++)
         glEnableVertexAttribArray(i);
 
@@ -67,12 +68,14 @@ void DirectRenderer::renderFrame(ScenePtr scene, const Camera& camera) {
 
     for(int i=0;i<4;i++)
         glDisableVertexAttribArray(i);
+    glBindVertexArray(0);
 }
 
 void DeferredFirstPass::renderFrame(ScenePtr scene, const Camera& camera) {
     if(mShader == nullptr)
         return;
 
+    glBindVertexArray(mDevice.getDefaultVAO());
     MaterialManager& mtlMgr = sEngine.getMaterialManager();
 
     for(int i=0;i<4;i++)
