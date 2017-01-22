@@ -62,7 +62,7 @@ public:
 
         assert(mFrameBuffer.isOk());
 
-		mShader = new Shader("../data/void.vs", "../data/deferred.fs");
+		mShader = new Shader("../data/void.vs", "../data/mrt_show.fs");
 
         glGenVertexArrays(1, &mQuadVAO);
         glBindVertexArray(mQuadVAO);
