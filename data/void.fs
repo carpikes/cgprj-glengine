@@ -10,7 +10,9 @@ uniform float time;
 void main(){
     float x = 20;
     float y = 18;
-    color = texture( renderedTexture, 
+    color = texture( renderedTexture, UV).rgb;
+    /*
             UV + 0.01 * 
             vec2( sin(time+x*UV.x),cos(time+y*UV.y)) ).xyz;
+            */
 }

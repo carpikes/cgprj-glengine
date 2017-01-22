@@ -72,7 +72,7 @@ int main(int argc, char *argv[]) {
 
 
     Device *device = sEngine.getDevice();
-    SimplePipeline pipeline(*device);
+    DeferredPipeline pipeline(*device);
     
     FirstPersonCamera c(75.0f, 16.0f/9.0f);
 

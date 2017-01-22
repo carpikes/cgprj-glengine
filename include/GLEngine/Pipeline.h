@@ -30,14 +30,114 @@ private:
     DirectRenderer mDirect;
 };
 
+class DeferredPipeline : public Pipeline {
+    TAG_DEF("DeferredPipeline")
+public:
+    DeferredPipeline(Device &device) : Pipeline(device), mDirect(device) {
+        glGenBuffers(1, &mQuadVBO);
+
+        mRenderPosition.allocate(mDevice.width(), mDevice.height(), 
+                                 GL_RGB16F, GL_RGB, GL_FLOAT);
+        mRenderNormal.allocate(mDevice.width(), mDevice.height(), 
+                               GL_RGB16F, GL_RGB, GL_FLOAT);
+        mRenderAlbedo.allocate(mDevice.width(), mDevice.height(), 
+                               GL_RGBA, GL_RGBA, GL_UNSIGNED_BYTE);
+
+        mRenderBuffer.allocate(GL_DEPTH_COMPONENT, mDevice.width(), 
+                               mDevice.height());
+
+        mFrameBuffer.linkTo(mRenderBuffer, GL_DEPTH_ATTACHMENT);
+
+        mFrameBuffer.linkTo(mRenderPosition, GL_COLOR_ATTACHMENT0);
+        mFrameBuffer.linkTo(mRenderNormal, GL_COLOR_ATTACHMENT1);
+        mFrameBuffer.linkTo(mRenderAlbedo, GL_COLOR_ATTACHMENT2);
+
+		GLenum DrawBuffers[3] = {
+		    GL_COLOR_ATTACHMENT0, 
+		    GL_COLOR_ATTACHMENT1,
+            GL_COLOR_ATTACHMENT2
+        };
+
+		glDrawBuffers(3, DrawBuffers);
+
+        assert(mFrameBuffer.isOk());
+
+		mShader = new Shader("../data/void.vs", "../data/deferred.fs");
+
+        glGenVertexArrays(1, &mQuadVAO);
+        glBindVertexArray(mQuadVAO);
+
+        static const GLfloat g_quad_vertex_buffer_data[] = {
+            -1.0f, -1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,
+            -1.0f,  1.0f, 0.0f,
+            -1.0f,  1.0f, 0.0f,
+            1.0f, -1.0f, 0.0f,
+            1.0f,  1.0f, 0.0f,
+        };
+
+        glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), 
+                     g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+    }
+
+    ~DeferredPipeline() {
+        glDeleteBuffers(1, &mQuadVBO); 
+        glDeleteVertexArrays(1, &mQuadVAO);
+        delete mShader;
+    }
+
+    virtual void renderFrame(ScenePtr scene, const Camera& camera)
+    {
+        mFrameBuffer.enable();
+        glViewport(0,0,mDevice.width(),mDevice.height());
+        glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        mDirect.renderFrame(scene, camera); 
+
+        // --------------------------------
+        
+        mRenderPosition.enable(0);
+        mRenderNormal.enable(1);
+        mRenderAlbedo.enable(2);
+
+        mShader->enable();
+        mShader->set("gPosition", 0);
+        mShader->set("gNormal", 1);
+        mShader->set("gAlbedo", 2);
+        mShader->set("time",Time);
+        Time+=0.02f;
+
+        Framebuffer::enableNull();
+        glViewport(0,0,mDevice.width(),mDevice.height());
+
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
+		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDisableVertexAttribArray(0);
+    }
+
+private:
+    float Time = 0;
+    GLuint mQuadVBO;
+    GLuint mQuadVAO;
+    Framebuffer mFrameBuffer;
+    Renderbuffer mRenderBuffer;
+    GLTexture mRenderPosition, mRenderNormal, mRenderAlbedo;
+
+    Shader *mShader;
+    DeferredFirstPass mDirect;
+};
+
+
 class ToonShaderPipeline : public Pipeline {
     TAG_DEF("ToonShaderPipeline")
 public:
     ToonShaderPipeline(Device &device) : Pipeline(device), mDirect(device) {
         glGenBuffers(1, &mQuadVBO);
 
-        mRenderTexture.allocate(1280, 720, GL_RGB, GL_UNSIGNED_BYTE);
-        mRenderBuffer.allocate(GL_DEPTH_COMPONENT, 1280, 720);
+        mRenderTexture.allocate(mDevice.width(), mDevice.height(), GL_RGB, GL_RGB, GL_UNSIGNED_BYTE);
+        mRenderBuffer.allocate(GL_DEPTH_COMPONENT, mDevice.width(), mDevice.height());
 
         mFrameBuffer.linkTo(mRenderBuffer, GL_DEPTH_ATTACHMENT);
         mFrameBuffer.linkTo(mRenderTexture, GL_COLOR_ATTACHMENT0);
@@ -75,22 +175,21 @@ public:
     virtual void renderFrame(ScenePtr scene, const Camera& camera)
     {
         mFrameBuffer.enable();
-        glViewport(0,0,1280,720);
+        glViewport(0,0,mDevice.width(),mDevice.height());
         glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mDirect.renderFrame(scene, camera); 
 
         // --------------------------------
         
-        glActiveTexture(GL_TEXTURE0);
-        mRenderTexture.enable();
+        mRenderTexture.enable(0);
 
         mShader->enable();
         mShader->set("renderedTexture", 0);
         mShader->set("time",Time);
         Time+=0.02f;
 
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glViewport(0,0,1280,720);
+        Framebuffer::enableNull();
+        glViewport(0,0,mDevice.width(),mDevice.height());
 
 		glEnableVertexAttribArray(0);
 		glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);

@@ -32,8 +32,29 @@ class DirectRenderer : public Renderer {
     TAG_DEF("DirectRenderer")
 public:
     DirectRenderer(Device& device) : Renderer(device), mShader(nullptr) {
-        mShader = &(sEngine.getDefaultShader());
+        mShader = new Shader("../data/main.vs", "../data/main.fs");
     }
+
+    virtual ~DirectRenderer() {
+        delete mShader;
+    }
+
+    virtual void renderFrame(ScenePtr scene, const Camera& camera);
+private:
+    Shader *mShader;
+};
+
+class DeferredFirstPass : public Renderer {
+    TAG_DEF("DirectRenderer")
+public:
+    DeferredFirstPass(Device& device) : Renderer(device), mShader(nullptr) {
+		mShader = new Shader("../data/main_mrt.vs", "../data/main_mrt.fs");
+    }
+
+    virtual ~DeferredFirstPass() {
+        delete mShader; 
+    }
+
     virtual void renderFrame(ScenePtr scene, const Camera& camera);
 private:
     Shader *mShader;

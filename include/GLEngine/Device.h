@@ -29,6 +29,9 @@ public:
     void writeTexture(const std::vector<VideoPtr>& buffer, 
             const std::unordered_set<Image *>& images);
 
+    size_t width() const { return mWidth; }
+    size_t height() const { return mHeight; }
+
     void registerInputHandler(InputHandler *in) {
         mInputHandlers.push_back(in); 
     }

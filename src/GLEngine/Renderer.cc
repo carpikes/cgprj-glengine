@@ -69,4 +69,50 @@ void DirectRenderer::renderFrame(ScenePtr scene, const Camera& camera) {
         glDisableVertexAttribArray(i);
 }
 
+void DeferredFirstPass::renderFrame(ScenePtr scene, const Camera& camera) {
+    if(mShader == nullptr)
+        return;
+
+    MaterialManager& mtlMgr = sEngine.getMaterialManager();
+
+    for(int i=0;i<4;i++)
+        glEnableVertexAttribArray(i);
+
+    glm::mat4 viewMat = camera.getViewMatrix();
+    glm::mat4 projMat = camera.getProjMatrix();
+
+    mShader->enable();
+    
+    for(const ObjectPtr o : scene->getObjects()) {
+        MeshPtr mesh = o->getMesh();
+        if(mesh == nullptr)
+            continue;
+
+        glm::mat4 mvpMat = projMat * viewMat * o->getModelMatrix();
+
+        mShader->set("uModelToWorld", o->getModelMatrix());
+        mShader->set("uModelViewProj", mvpMat);
+        mShader->set("uWS_NormalMatrix", o->getNormalMatrix());
+
+        // Da spostare nella mesh
+        for(MeshPart& part : mesh->getParts()) {
+            MaterialPtr mtl = mtlMgr.get(part.material());
+            if(mtl == nullptr)
+                continue;
+
+            glBindBuffer(GL_ARRAY_BUFFER, part.videoPtr());
+            for(int i=0;i<4;i++)
+                glVertexAttribPointer(i, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                                      (void *) (i * sizeof(glm::vec3)));
+
+            mtl->enable(*mShader);
+
+            glDrawArrays(GL_TRIANGLES, 0, part.vertices().size());
+        } 
+    }
+
+    for(int i=0;i<4;i++)
+        glDisableVertexAttribArray(i);
+}
+
 } /* GLEngine */ 

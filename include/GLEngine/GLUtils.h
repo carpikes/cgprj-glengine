@@ -16,13 +16,15 @@ public:
         glDeleteTextures(1, &mTex); 
     }
 
-    void enable() const {
+    void enable(int n) const {
+        glActiveTexture(GL_TEXTURE0 + n);
         glBindTexture(GL_TEXTURE_2D, mTex); 
     }
 
-    void allocate(int w, int h, GLenum format, GLenum type) const {
-        enable();
-		glTexImage2D(GL_TEXTURE_2D, 0,format, w, h, 0, format, type, 0);
+    void allocate(int w, int h, GLenum iformat, GLenum format, GLenum type) const {
+        glBindTexture(GL_TEXTURE_2D, mTex); 
+		glTexImage2D(GL_TEXTURE_2D, 0,iformat, w, h, 0, format, type, 0);
+
         // valori di default
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
