@@ -36,10 +36,6 @@ public:
         return ss.str();
     }
 
-    void clear() {
-        LOGP("Clear: %d\n", mMaterials.size());
-        mMaterials.clear();
-    }
 private:
     std::unordered_map<std::string, MaterialPtr> mMaterials;
 };

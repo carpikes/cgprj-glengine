@@ -170,7 +170,6 @@ int main(int argc, char *argv[]) {
 
     scene->removeFromDevice(*device);
     meshes.clear();
-    sEngine.getMaterialManager().clear();
     scene = nullptr;
     return 0;
 }
