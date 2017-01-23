@@ -177,7 +177,7 @@ HANDLER(ReadTexture) {
     Utils::cleanFileName(tPath2);
     ImagePtr img = resMgr.getImage(tPath);
     if(!img) {
-        img = resMgr.getImage(tPath2);
+//        img = resMgr.getImage(tPath2);
         if(!img) {
             ERRP("Cannot load texture %s", tPath.c_str());
             return false;

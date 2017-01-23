@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     vector<MeshPtr> meshes;
     vector<string> objFiles = getObjFiles();
 
-    const int maxNum = 30;
+    const int maxNum = 100;
 
     int q = 0;
     for(string& i : objFiles) {
@@ -137,11 +137,10 @@ int main(int argc, char *argv[]) {
 
         float avgCol = pipeline.getAvgLight();
         float avgLight = 1.0f - exp(-avgCol * mLastExposure);
-        float dist = (avgLight - 0.4);
-        dist *= dist;
+        float dist = pow(avgLight - 0.4,4);
         if(avgLight > 0.4f) mLastExposure -= 0.9f * dist;
         if(avgLight < 0.4f) mLastExposure += 0.9f * dist;
-        if(mLastExposure < 0.05f) mLastExposure = 0.05f;
+        if(mLastExposure < 0.001f) mLastExposure = 0.001f;
         if(mLastExposure > 3.0f) mLastExposure = 3.0f;
         LOGP("AVG Light: %f -> LastExp: %f", avgLight, mLastExposure);
 
