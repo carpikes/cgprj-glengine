@@ -16,13 +16,16 @@ enum eTextures {
 };
 
 struct Texture {
-    Texture(Image *img) : img(img) { }
+    Texture(ImagePtr img) : img(img) { }
+    ~Texture() { }
     bool mBlendH, mBlendV;
     float mBoostSharpness;
     float mBrightnessMod, mContrastMod; /* Default: 0 1 */
-    Image *img;
+    ImagePtr img;
     // Offset, scale, turbulence
 };
+
+typedef std::shared_ptr<Texture> TexturePtr;
 
     
 } /* GLEngine */ 

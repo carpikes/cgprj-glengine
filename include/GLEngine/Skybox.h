@@ -39,25 +39,24 @@ public:
 
         for(int i=0;i<6;i++)
         {
-            Image *img = ImageFactory::load(files[i]);
+            ImagePtr img = ImageFactory::load(files[i]);
             assert(img != NULL);
             mBox.push_back(img); 
         }
 
         mShader = new Shader("../data/skybox.vs", "../data/skybox.fs");
         assert(mShader != NULL);
-        glGenTextures(1, &mTexID);
-        glGenVertexArrays(1, &mSkyboxVAO);
-        glGenBuffers(1, &mSkyboxVBO);
-        LOGP("My VBO: %d, VAO: %d", mSkyboxVBO, mSkyboxVAO);
     }
 
     void enable() {
         LOG("Enable()");
+        glGenTextures(1, &mTexID);
+        glGenVertexArrays(1, &mSkyboxVAO);
+        glGenBuffers(1, &mSkyboxVBO);
         glBindTexture(GL_TEXTURE_CUBE_MAP, mTexID);
         for(int i=0;i<6;i++)
         {
-            Image *img = mBox[i];
+            ImagePtr img = mBox[i];
             glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, 
                          img->format(), img->width(), img->height(), 0, 
                          img->format(), GL_UNSIGNED_BYTE, &(img->Data())[0]);
@@ -82,7 +81,6 @@ public:
     }
 
     void render(const Camera& c) {
-        LOG("Render()");
         GLint oldCullFace, oldDepthFunc;
 
         const glm::mat4 viewMat = glm::mat4(glm::mat3(c.getViewMatrix()));
@@ -117,20 +115,16 @@ public:
     }
 
     void disable() {
-        assert(false);
-
-        for(int i=0;i<6;i++) {
-            // TODO ...    
-        }
+        glDeleteTextures(1, &mTexID);
+        glDeleteVertexArrays(1, &mSkyboxVAO);
+        glDeleteBuffers(1, &mSkyboxVBO);
     }
 
     ~Skybox() {
-        for(size_t i=0;i<mBox.size();i++)
-            delete mBox[i];
         delete mShader;
     }
 private:
-    vector<Image *> mBox;
+    vector<ImagePtr> mBox;
     VideoPtr mTexID;
     VideoPtr mSkyboxVAO, mSkyboxVBO;
     Shader *mShader;

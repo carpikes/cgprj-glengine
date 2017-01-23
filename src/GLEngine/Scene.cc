@@ -12,6 +12,17 @@ bool Scene::removeFromDevice(Device& device) {
     if(mSkybox != nullptr)
         mSkybox->disable();
 
+    glDeleteBuffers(mVideoPtrs.size(), &mVideoPtrs[0]); 
+    mVideoPtrs.clear();
+
+    glDeleteTextures(mTextureIds.size(), &mTextureIds[0]);
+    mTextureIds.clear();
+
+    for(ObjectPtr o : mObjects) {
+        MeshPtr m = o->getMesh();
+        m->setEngineTag(0);
+    }
+
     return true;
 }
 
@@ -25,7 +36,6 @@ bool Scene::loadInDevice(Device& device) {
         }
     }
 
-    std::vector<VideoPtr> mVideoPtrs, mTextureIds;
     mVideoPtrs.clear();
     mVideoPtrs.resize(numberOfBuffers, InvalidVideoPtr);
 
@@ -53,7 +63,7 @@ bool Scene::loadInDevice(Device& device) {
     }
 
     // e qua le texture
-    std::unordered_set<Image *> usedImages;
+    std::unordered_set<ImagePtr> usedImages;
     MaterialManager& matManager = sEngine.getMaterialManager();
     for(const ObjectPtr o : mObjects)
         for(MeshPart& mp : o->getMesh()->getParts()) {

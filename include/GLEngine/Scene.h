@@ -17,6 +17,9 @@ class Scene {
     TAG_DEF("Scene")
 public:
     Scene() : mAmbientLight(nullptr) {}
+    ~Scene() {
+        LOG("Deallocating scene");
+    }
 
     std::vector<ObjectPtr>& getObjects() { return mObjects; }
     std::vector<PointLightPtr>& getLights() { return mLights; }
@@ -51,6 +54,7 @@ public:
 private:
     std::vector<ObjectPtr> mObjects;
     std::vector<PointLightPtr> mLights;
+    std::vector<VideoPtr> mVideoPtrs, mTextureIds;
     AmbientLightPtr mAmbientLight;
     HemiLightPtr mHemiLight;
     SkyboxPtr mSkybox;

@@ -175,17 +175,19 @@ HANDLER(ReadTexture) {
     string tPath = texPath.str(), tPath2 = texPath2.str();
     Utils::cleanFileName(tPath);
     Utils::cleanFileName(tPath2);
-    Image *img = resMgr.get<Image>(tPath);
+    ImagePtr img = resMgr.getImage(tPath);
     if(!img) {
-    //    img = resMgr.get<Image>(tPath2);
+        img = resMgr.getImage(tPath2);
         if(!img) {
             ERRP("Cannot load texture %s", tPath.c_str());
             return false;
+        } else {
+            LOGP("Using alternative texture %s", tPath2.c_str());
         }
         tPath = tPath2;
     }
 
-    Texture *tex = new Texture(img);
+    TexturePtr tex = std::make_shared<Texture>(img);
 
     switch(type) {
         case 0: mtl->mCurMaterial->mAmbientTexture = tex; break;
@@ -196,7 +198,6 @@ HANDLER(ReadTexture) {
         case 6: mtl->mCurMaterial->mDisplacementTexture = tex; break;
         default: 
             ERRP("Unk type %d", type);
-            free(tex);
     }
 
     return true;

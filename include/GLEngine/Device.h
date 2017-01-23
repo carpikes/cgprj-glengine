@@ -27,7 +27,7 @@ public:
     void writeVertices(VideoPtr buffer, 
             const std::vector<Vertex>& vertices);
     void writeTexture(const std::vector<VideoPtr>& buffer, 
-            const std::unordered_set<Image *>& images);
+            const std::unordered_set<ImagePtr>& images);
 
     size_t width() const { return mWidth; }
     size_t height() const { return mHeight; }

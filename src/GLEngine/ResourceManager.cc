@@ -5,54 +5,48 @@
 namespace GLEngine
 {
 
-void* ResourceManager::_load(const string& name) {
-    auto r = mResources.find(name);
-    if(r != mResources.end())
-        return nullptr;
+ImagePtr ResourceManager::getImage(const string& name) {
+    auto r = mImages.find(name);
 
-    void *res = nullptr;
-    string ext = Utils::getExtension(name);
-
-    string rname = name;
-    DEBP("Loading resource %s", rname.c_str());
-    if(!ext.compare("obj")) 
-        res = loadObj(name, mPath);
-    else if(!ext.compare("png"))
-        res = loadPng(rname);
-    else 
-        ERRP("Invalid extension for resource %s", name.c_str());
-
-    if( res != nullptr) {
-        DEBP("Loaded resource %s", rname.c_str());
-        mResources[name] = res;
-    }
-    return res;
-}
-
-void* ResourceManager::_get(const string& name) {
-    auto r = mResources.find(name);
-
-    DEBP("Requesting texture %s", name.c_str());
-    if( r == mResources.end()) {
-        DEBP("Loading texture %s", name.c_str());
-        void *ptr = _load(name);
+    if( r == mImages.end()) {
+        ImagePtr ptr = ImageFactory::load(name);
         if(ptr == nullptr) {
             ERRP("Asking invalid resource %s", name.c_str());
             return nullptr;
         }
+
+        DEBP("Loaded resource %s", rname.c_str());
+        mImages[name] = ptr;
         return ptr;
     }
 
     return r->second;
 }
 
-void *ResourceManager::loadObj(const string& name, const string& path) {
-    Mesh *o = new Mesh;
+MeshPtr ResourceManager::getMesh(const string& name) {
+    auto r = mMeshes.find(name);
+
+    if(r == mMeshes.end()) {
+        MeshPtr ptr = loadObj(name, mPath);
+        if(ptr == nullptr) {
+            ERRP("Asking invalid resource %s", name.c_str());
+            return nullptr;
+        }
+
+        DEBP("Loaded resource %s", rname.c_str());
+        mMeshes[name] = ptr;
+        return ptr;
+    }
+
+    return r->second;
+}
+
+MeshPtr ResourceManager::loadObj(const string& name, const string& path) {
+    MeshPtr o = std::make_shared<Mesh>();
     OBJFileReader obj(this->mEngine, path);
     if(obj.load(name, *o))
         return o;
 
-    delete o;
     return nullptr; 
 }
 

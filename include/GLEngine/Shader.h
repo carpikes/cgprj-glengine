@@ -61,7 +61,7 @@ public:
     }
 
     uint32_t setTexture(const std::string& name, 
-                        const Texture* t, uint8_t pos) {
+                        const TexturePtr t, uint8_t pos) {
         if(t == nullptr || t->img == nullptr)
             return 0;
 

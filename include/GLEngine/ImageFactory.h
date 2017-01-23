@@ -11,7 +11,7 @@ namespace GLEngine
 class ImageFactory {
     TAG_DEF("ImageFactory")
 public:
-    static Image *load(const std::string& name) {
+    static ImagePtr load(const std::string& name) {
         std::ifstream file(name.c_str(), std::ios::binary | std::ios::ate);
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
@@ -29,11 +29,10 @@ public:
 
         if(PNGFileFormat::checkHeader(buffer)) {
             PNGFileFormat pngReader;
-            Image *img = new Image;
+            ImagePtr img = std::make_shared<Image>();
 
             if(!pngReader.readImage(buffer, *img)) {
                 ERRP("Cannot read %s", name.c_str());
-                delete img;
                 return nullptr;
             }
 

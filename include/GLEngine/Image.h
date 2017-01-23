@@ -20,15 +20,15 @@ class Image {
 
         VideoPtr videoPtr() const { return mId; }
         void setVideoPtr(VideoPtr id) { mId = id; }
-    private:
         Image() { }
-
+    private:
         std::vector<uint8_t> mData;
         size_t mWidth, mHeight;
         GLint mFormat;
         VideoPtr mId;
 };
 
+typedef std::shared_ptr<Image> ImagePtr;
 } /* GLEngine */ 
 
 #endif /* ifndef GLENGINE_IMAGE_H */

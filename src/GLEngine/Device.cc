@@ -102,11 +102,11 @@ void Device::writeVertices(VideoPtr buffer,
 }
 
 void Device::writeTexture(const std::vector<VideoPtr>& buffer, 
-        const std::unordered_set<Image *>& images) {
+        const std::unordered_set<ImagePtr>& images) {
     assert(buffer.size() == images.size());
 
     size_t bufpos = 0;
-    for(Image* img : images) {
+    for(ImagePtr img : images) {
         img->setVideoPtr(buffer[bufpos]);
         glBindTexture(GL_TEXTURE_2D, buffer[bufpos]);
 

@@ -17,17 +17,20 @@ class ResourceManager {
     TAG_DEF("ResourceManager")
 public:
     ResourceManager(Engine *engine) : mPath("."), mEngine(engine) {}
+    ~ResourceManager() { }
 
-    template<typename T>
-    inline T* get(const string& name) {
-        return (T*) this->_get(name);
-    }
+    ImagePtr getImage(const string& name);
+    MeshPtr getMesh(const string& name);
+
 
     void setPath(const string& path) {
         mPath = path;
     }
 private:
-    std::unordered_map<string, void*> mResources;
+    std::unordered_map<string, ImagePtr> mImages;
+    std::unordered_map<string, MeshPtr> mMeshes;
+    std::unordered_map<string, MaterialPtr> mMaterials;
+
     string mPath;
     Engine *mEngine;
 
@@ -35,18 +38,9 @@ private:
         TYPE_UNK,
         TYPE_PNG,
         TYPE_OBJ,
-        TYPE_MTL,
     };
 
-    void *_load(const string& name);
-    void *_get(const string& name);
-
-    
-    void *loadObj(const string& path, const string& name);
-
-    void *loadPng(const string& name) { 
-        return ImageFactory::load(name); 
-    }
+    MeshPtr loadObj(const string& name, const string& path);
 };
 
 } /* GLEngine */ 

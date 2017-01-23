@@ -30,10 +30,6 @@ public:
         return mMatManager;
     }
 
-    Shader& getDefaultShader() {
-        return *mDefaultShader;
-    }
-
     void setDataPath(const string& path) {
         if(path.length() == 0) {
             setDataPath(".");
@@ -59,9 +55,6 @@ private:
         setDataPath("../data");
         if(!mDevice->init(1280, 720, "GLEngine test", 1))
             throw "Cannot init device.";
-
-        mDefaultShader = std::make_shared<Shader>
-            ("../data/main.vs", "../data/main.fs");
     }
 
 };

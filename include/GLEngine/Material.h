@@ -23,18 +23,18 @@ struct Material {
     glm::vec3 mSpecularColor, mTransmissionFilter;
     float mSpecularExponent, mAlpha, mOpticalDensity;
 
-    Texture *mAmbientTexture, *mDiffuseTexture, *mSpecularTexture;
-    Texture *mHighlightTexture, *mAlphaTexture; // not used
-    Texture *mBumpTexture, *mDisplacementTexture, *mStencilTexture; // not used
+    TexturePtr mAmbientTexture, mDiffuseTexture, mSpecularTexture;
+    TexturePtr mHighlightTexture, mAlphaTexture; // not used
+    TexturePtr mBumpTexture, mDisplacementTexture, mStencilTexture; // not used
 
-    void appendTextures(std::unordered_set<Image *>& out) {
-        Texture* arr[] = {  
+    void appendTextures(std::unordered_set<ImagePtr>& out) {
+        TexturePtr arr[] = {  
             mAmbientTexture, mDiffuseTexture, mSpecularTexture,
             mHighlightTexture, mAlphaTexture, mBumpTexture,
             mDisplacementTexture, mStencilTexture
         };
 
-        for(Texture *t : arr)
+        for(TexturePtr t : arr)
             if(t != nullptr && t->img != nullptr)
                 out.insert(t->img);
     }

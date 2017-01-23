@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
     for(string& i : objFiles) {
         if((q++) >= maxNum)
             break;
-        MeshPtr j(sEngine.getResourceManager().get<Mesh>(i));
+        MeshPtr j(sEngine.getResourceManager().getMesh(i));
         if(!j) {
             ERRP("Cannot load %s", i.c_str());
             continue;
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
         meshes.push_back(j);
     }
 
-    MeshPtr pav(sEngine.getResourceManager().get<Mesh>("pav.obj"));
+    MeshPtr pav(sEngine.getResourceManager().getMesh("pav.obj"));
     if(!pav)
         return 0;
 
@@ -44,8 +44,8 @@ int main(int argc, char *argv[]) {
 
     for(size_t i=0;i<meshes.size();i++) {
         ObjectPtr poke = std::make_shared<Object>(meshes[i]);
-        float px = (float)((int)i % 5) * 23 - (80/2);
-        float py = (float)((int)i / 5) * 15 - 50;
+        float px = (float)((int)i % 10) * 30 - 100;
+        float py = (float)((int)i / 10) * 30 - 100;
         { // Normalize Mesh
             Box b = meshes[i]->getBoundingBox();
             float dx = (b.vmax[0] - b.vmin[0]);
@@ -142,9 +142,9 @@ int main(int argc, char *argv[]) {
             float x = cnt * ((i>>3) * 0.1f + 1.0f) + phase;
 
             glm::vec3 lpos = glm::vec3(
-                    sin(x) * (2+i) * 3.0f,
+                    sin(x) * (2+i) * 10.0f,
                     3, 
-                    cos(x) * (2+i) * 3.0f
+                    cos(x) * (2+i) * 10.0f
             );
 
             p->setPosition(lpos);
@@ -168,6 +168,10 @@ int main(int argc, char *argv[]) {
         usleep(10000);
     }
 
+    scene->removeFromDevice(*device);
+    meshes.clear();
+    sEngine.getMaterialManager().clear();
+    scene = nullptr;
     return 0;
 }
 
