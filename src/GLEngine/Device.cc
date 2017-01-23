@@ -97,7 +97,7 @@ void Device::writeVertices(VideoPtr buffer,
         const std::vector<Vertex>& vertices) {
     glBindBuffer(GL_ARRAY_BUFFER, buffer);
     glBufferData(GL_ARRAY_BUFFER, 
-            vertices.size() * sizeof(Vertex) + 4, 
+            vertices.size() * sizeof(Vertex), 
             &vertices[0], GL_STATIC_DRAW); // mmh..static..
 }
 
