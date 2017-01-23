@@ -5,14 +5,15 @@ in vec2 UV;
 out vec3 color;
 
 uniform sampler2D renderedTexture;
-uniform float time;
+uniform float exposure;
 
-void main(){
-    float x = 20;
-    float y = 18;
-    color = texture( renderedTexture, UV).rgb;
-    /*
-            UV + 0.01 * 
-            vec2( sin(time+x*UV.x),cos(time+y*UV.y)) ).xyz;
-            */
+void main() {
+    const float gamma = 2.2;
+    vec3 hdrColor = texture( renderedTexture, UV).rgb;
+
+    vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
+
+    mapped = pow(mapped, vec3(1.0 / gamma));
+
+    color = mapped;
 }

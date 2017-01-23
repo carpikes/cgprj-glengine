@@ -33,10 +33,16 @@ private:
 class DeferredPipeline : public Pipeline {
     TAG_DEF("DeferredPipeline")
 public:
+    void setExposure(float v) { mExposure = v; }
+    float getExposure() const { return mExposure; }
+
     DeferredPipeline(Device &device) : Pipeline(device), mFirstPass(device),
                                        mLightPass(device) {
+        mExposure = 1.0f;
         glGenBuffers(1, &mQuadVBO);
+		mShader = new Shader("../data/void.vs", "../data/void.fs");
 
+        // CONFIGURE FIRST PASS BUFFER
         mRenderPosition.allocate(mDevice.width(), mDevice.height(), 
                                  GL_RGBA16F, GL_RGB, GL_FLOAT);
         mRenderNormal.allocate(mDevice.width(), mDevice.height(), 
@@ -47,8 +53,12 @@ public:
         mRenderBuffer.allocate(GL_DEPTH_COMPONENT, mDevice.width(), 
                                mDevice.height());
 
-        mFrameBuffer.linkTo(mRenderBuffer, GL_DEPTH_ATTACHMENT);
+        mLightTex.allocate(mDevice.width(), mDevice.height(), 
+                          GL_RGBA16F, GL_RGB, GL_FLOAT);
 
+        mFrameBuffer.enable();
+
+        mFrameBuffer.linkTo(mRenderBuffer, GL_DEPTH_ATTACHMENT);
         mFrameBuffer.linkTo(mRenderPosition, GL_COLOR_ATTACHMENT0);
         mFrameBuffer.linkTo(mRenderNormal, GL_COLOR_ATTACHMENT1);
         mFrameBuffer.linkTo(mRenderAlbedo, GL_COLOR_ATTACHMENT2);
@@ -62,6 +72,16 @@ public:
 		glDrawBuffers(3, DrawBuffers);
 
         assert(mFrameBuffer.isOk());
+        
+        // CONFIGURE LIGHT PASS BUFFER
+        
+        mLightFB.enable();
+        mLightFB.linkTo(mRenderBuffer, GL_DEPTH_ATTACHMENT);
+        mLightFB.linkTo(mLightTex, GL_COLOR_ATTACHMENT0);
+		GLenum LightDrawBuffers[1] = { GL_COLOR_ATTACHMENT0 };
+		glDrawBuffers(1, LightDrawBuffers);
+
+		assert(mLightFB.isOk());
 
         glGenVertexArrays(1, &mQuadVAO);
         glBindVertexArray(mQuadVAO);
@@ -83,28 +103,31 @@ public:
     ~DeferredPipeline() {
         glDeleteBuffers(1, &mQuadVBO); 
         glDeleteVertexArrays(1, &mQuadVAO);
+        delete mShader;
     }
 
     virtual void renderFrame(ScenePtr scene, const Camera& camera)
     {
+        // -- FIRST PASS: (GEOMETRY -> MRT)
+        glClearColor(0,0,0,0);
+
         mFrameBuffer.enable();
         glViewport(0,0,mDevice.width(),mDevice.height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         mFirstPass.renderFrame(scene, camera); 
 
-        // --------------------------------
+        // -- LIGHT PASS (MRT -> TEXTURE)
         
+        mLightFB.enable();
+
         mRenderPosition.enable(0);
         mRenderNormal.enable(1);
         mRenderAlbedo.enable(2);
 
-        mLightPass.renderFrame(scene, camera);
-
-        Framebuffer::enableNull();
         glViewport(0,0,mDevice.width(),mDevice.height());
-
-        glClearColor(0,0,0,0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        mLightPass.renderFrame(scene, camera);
 
         glBindVertexArray(mQuadVAO);
 		glEnableVertexAttribArray(0);
@@ -116,17 +139,39 @@ public:
         SkyboxPtr skybox = scene->getSkybox();
         if(skybox != nullptr)
             skybox->render(camera);
+
+        // -- FINAL PASS (TEXTURE -> EFFECTS -> SCREEN)
+        
+        Framebuffer::enableNull();
+        mLightTex.enable(0);
+
+        glViewport(0,0,mDevice.width(),mDevice.height());
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        mShader->enable();
+        mShader->set("renderedTexture", 0);
+        mShader->set("exposure", mExposure);
+
+        glBindVertexArray(mQuadVAO);
+		glEnableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, mQuadVBO);
+		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDisableVertexAttribArray(0);
+
     }
 
 private:
     GLuint mQuadVBO;
     GLuint mQuadVAO;
-    Framebuffer mFrameBuffer;
+    float mExposure;
+    Framebuffer mFrameBuffer, mLightFB;
     Renderbuffer mRenderBuffer;
-    GLTexture mRenderPosition, mRenderNormal, mRenderAlbedo;
+    GLTexture mRenderPosition, mRenderNormal, mRenderAlbedo, mLightTex;
 
     DeferredFirstPass mFirstPass;
     DeferredLightPass mLightPass;
+    Shader *mShader;
 };
 
 

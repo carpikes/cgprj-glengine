@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     vector<MeshPtr> meshes;
     vector<string> objFiles = getObjFiles();
 
-    const int maxNum = 200;
+    const int maxNum = 30;
 
     int q = 0;
     for(string& i : objFiles) {
@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
         PointLightPtr p = std::make_shared<PointLight>();
         p->setPosition(glm::vec3(0,10,0));
         //p->setAttenuation(glm::vec3(0,0.0, 0.01));
-        p->setAttenuation(glm::vec3(0,0,0.01f));
+        p->setAttenuation(glm::vec3(0,0,0.001f));
         p->setAmbientColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f);
         p->setDiffuseColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.9f);
         /*
@@ -133,6 +133,7 @@ int main(int argc, char *argv[]) {
     auto t1 = Clock::now();
     vector<PointLightPtr>& plights = scene->getLights();
     while(device->isRunning()) {
+        pipeline.setExposure(3.2f + sin(cnt) * 3);
         c.update();
 
         for(size_t i=0;i<plights.size();i++) {
