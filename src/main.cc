@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
         PointLightPtr p = std::make_shared<PointLight>();
         p->setPosition(glm::vec3(0,10,0));
         //p->setAttenuation(glm::vec3(0,0.0, 0.01));
-        p->setAttenuation(glm::vec3(0,0,0.001f));
+        p->setAttenuation(glm::vec3(0,0,0.0001f));
         p->setAmbientColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.1f);
         p->setDiffuseColor(glm::vec3(col[i][0],col[i][1],col[i][2]) * 0.9f);
         /*
@@ -103,8 +103,8 @@ int main(int argc, char *argv[]) {
     }
 
     AmbientLightPtr ambient = std::make_shared<AmbientLight>();
-    ambient->setDiffuseColor(glm::vec3(0.4f));
-    ambient->setAmbientColor(glm::vec3(0.1f));
+    ambient->setDiffuseColor(glm::vec3(0.2f));
+    ambient->setAmbientColor(glm::vec3(0.0f));
     ambient->setDirection(glm::vec3(0,1.0f,0));
     ambient->enable();
     scene->setAmbientLight(ambient);
@@ -132,15 +132,28 @@ int main(int argc, char *argv[]) {
 
     auto t1 = Clock::now();
     vector<PointLightPtr>& plights = scene->getLights();
+    float mLastExposure = pipeline.getExposure();
     while(device->isRunning()) {
-        pipeline.setExposure(3.2f + sin(cnt) * 3);
+
+        float avgCol = pipeline.getAvgLight();
+        float avgLight = 1.0f - exp(-avgCol * mLastExposure);
+        float dist = (avgLight - 0.4);
+        dist *= dist;
+        if(avgLight > 0.4f) mLastExposure -= 0.9f * dist;
+        if(avgLight < 0.4f) mLastExposure += 0.9f * dist;
+        if(mLastExposure < 0.05f) mLastExposure = 0.05f;
+        if(mLastExposure > 3.0f) mLastExposure = 3.0f;
+        LOGP("AVG Light: %f -> LastExp: %f", avgLight, mLastExposure);
+
+        pipeline.setExposure(mLastExposure);
+
         c.update();
 
         for(size_t i=0;i<plights.size();i++) {
             PointLightPtr p = scene->getLights()[i];
 
             float phase = i / 8.0f * 6.28f + i;
-            float x = cnt * ((i>>3) * 0.1f + 1.0f) + phase;
+            float x = 0 * cnt * ((i>>3) * 0.1f + 1.0f) + phase;
 
             glm::vec3 lpos = glm::vec3(
                     sin(x) * (2+i) * 10.0f,

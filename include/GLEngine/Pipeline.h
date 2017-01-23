@@ -35,6 +35,7 @@ class DeferredPipeline : public Pipeline {
 public:
     void setExposure(float v) { mExposure = v; }
     float getExposure() const { return mExposure; }
+    float getAvgLight() const { return mAvgLight; }
 
     DeferredPipeline(Device &device) : Pipeline(device), mFirstPass(device),
                                        mLightPass(device) {
@@ -42,7 +43,7 @@ public:
         glGenBuffers(1, &mQuadVBO);
 		mShader = new Shader("../data/void.vs", "../data/void.fs");
 
-        // CONFIGURE FIRST PASS BUFFER
+        // ----- CONFIGURE FIRST PASS BUFFER -----
         mRenderPosition.allocate(mDevice.width(), mDevice.height(), 
                                  GL_RGBA16F, GL_RGB, GL_FLOAT);
         mRenderNormal.allocate(mDevice.width(), mDevice.height(), 
@@ -52,9 +53,6 @@ public:
 
         mRenderBuffer.allocate(GL_DEPTH_COMPONENT, mDevice.width(), 
                                mDevice.height());
-
-        mLightTex.allocate(mDevice.width(), mDevice.height(), 
-                          GL_RGBA16F, GL_RGB, GL_FLOAT);
 
         mFrameBuffer.enable();
 
@@ -73,8 +71,11 @@ public:
 
         assert(mFrameBuffer.isOk());
         
-        // CONFIGURE LIGHT PASS BUFFER
+        // ----- CONFIGURE LIGHT PASS BUFFER -----
         
+        mLightTex.allocate(mDevice.width(), mDevice.height(), 
+                          GL_RGBA16F, GL_RGB, GL_FLOAT);
+
         mLightFB.enable();
         mLightFB.linkTo(mRenderBuffer, GL_DEPTH_ATTACHMENT);
         mLightFB.linkTo(mLightTex, GL_COLOR_ATTACHMENT0);
@@ -82,6 +83,8 @@ public:
 		glDrawBuffers(1, LightDrawBuffers);
 
 		assert(mLightFB.isOk());
+
+        // ----- ALLOCATE QUAD -----
 
         glGenVertexArrays(1, &mQuadVAO);
         glBindVertexArray(mQuadVAO);
@@ -140,10 +143,19 @@ public:
         if(skybox != nullptr)
             skybox->render(camera);
 
-        // -- FINAL PASS (TEXTURE -> EFFECTS -> SCREEN)
+
+        // -- HDR PASS (TEXTURE + EFFECTS -> SCREEN)
         
         Framebuffer::enableNull();
+
         mLightTex.enable(0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+        glGenerateMipmap(GL_TEXTURE_2D);
+
+        float fPixel[4];
+        glGetTexImage(GL_TEXTURE_2D, 10, GL_RGBA, GL_FLOAT, fPixel);
+        mAvgLight = 0.3f * fPixel[0] + 0.59f * fPixel[1] + 0.11f *fPixel[2];
 
         glViewport(0,0,mDevice.width(),mDevice.height());
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -158,13 +170,13 @@ public:
 		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
         glDisableVertexAttribArray(0);
-
     }
 
 private:
     GLuint mQuadVBO;
     GLuint mQuadVAO;
     float mExposure;
+    float mAvgLight;
     Framebuffer mFrameBuffer, mLightFB;
     Renderbuffer mRenderBuffer;
     GLTexture mRenderPosition, mRenderNormal, mRenderAlbedo, mLightTex;
