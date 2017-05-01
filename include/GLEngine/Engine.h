@@ -53,7 +53,7 @@ private:
     {
         // TODO: hardcoded, right?
         setDataPath("../data");
-        if(!mDevice->init(1280, 720, "GLEngine test", 1))
+        if(!mDevice->init(1280, 720, "GLEngine test", 0))
             throw "Cannot init device.";
     }
 

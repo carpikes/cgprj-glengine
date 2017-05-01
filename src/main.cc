@@ -103,7 +103,7 @@ int main(int argc, char *argv[]) {
     }
 
     AmbientLightPtr ambient = std::make_shared<AmbientLight>();
-    ambient->setDiffuseColor(glm::vec3(0.2f));
+    ambient->setDiffuseColor(glm::vec3(0.1f));
     ambient->setAmbientColor(glm::vec3(0.0f));
     ambient->setDirection(glm::vec3(0,1.0f,0));
     ambient->enable();
@@ -111,18 +111,18 @@ int main(int argc, char *argv[]) {
 
     HemiLightPtr hemi = std::make_shared<HemiLight>();
     hemi->setPosition(glm::vec3(0,5000,0));
-    hemi->setUpColor(glm::vec3(0.1f, 0.1f, 0.2f));
-    hemi->setDownColor(glm::vec3(0.2f, 0.2f, 0.2f));
+    hemi->setUpColor(glm::vec3(0.0f, 0.0f, 0.0f));
+    hemi->setDownColor(glm::vec3(0.1f, 0.1f, 0.1f));
     hemi->enable();
     scene->setHemiLight(hemi);
 
     std::vector<std::string> files = {
-        "../data/skybox/miramar_ft.png",
-        "../data/skybox/miramar_bk.png",
-        "../data/skybox/miramar_dn.png",
-        "../data/skybox/miramar_up.png",
-        "../data/skybox/miramar_rt.png",
-        "../data/skybox/miramar_lf.png",
+        "../data/box3/ae_ft.tga.png",
+        "../data/box3/ae_bk.tga.png",
+        "../data/box3/ae_dn.tga.png",
+        "../data/box3/ae_up.tga.png",
+        "../data/box3/ae_rt.tga.png",
+        "../data/box3/ae_lf.tga.png",
     };
     SkyboxPtr skybox = std::make_shared<Skybox>(files);
 
@@ -141,7 +141,7 @@ int main(int argc, char *argv[]) {
         if(avgLight > 0.4f) mLastExposure -= 0.9f * dist;
         if(avgLight < 0.4f) mLastExposure += 0.9f * dist;
         if(mLastExposure < 0.001f) mLastExposure = 0.001f;
-        if(mLastExposure > 3.0f) mLastExposure = 3.0f;
+        if(mLastExposure > 5.0f) mLastExposure = 5.0f;
         LOGP("AVG Light: %f -> LastExp: %f", avgLight, mLastExposure);
 
         pipeline.setExposure(mLastExposure);
